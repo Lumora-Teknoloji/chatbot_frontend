@@ -1,0 +1,58 @@
+/* app/globals.css */
+
+@import "tailwindcss";
+
+:root {
+    --background: #ffffff;
+    --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+}
+
+/* ------------------------------------------- */
+/* VANILLA CSS SCROLLBAR HİLESİ (Tüm Tarayıcılar İçin) */
+/* ------------------------------------------- */
+
+/* 1. TÜM ELEMENTLERİ HEDEFLEYEN GENİŞLİK */
+/* !important kullanarak genişliği uygulamaya zorluyoruz. */
+::-webkit-scrollbar {
+    width: 25px !important;
+    height: 25px !important;
+    background: transparent !important;
+}
+
+/* 2. Çubuğun arkasındaki zemin (Track) */
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+/* 3. Çubuğun kendisi (Thumb) */
+::-webkit-scrollbar-thumb {
+    background-color: #4b5563 !important;
+    border-radius: 10px !important;
+    border: 5px solid transparent !important;
+}
+
+/* 4. Çubuk üzerine gelindiğinde renk değişimi */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280 !important;
+}
+
+/* 5. FIREFOX İÇİN UYUMLULUK */
+* {
+    /* Bu kuralların !important alması gerekmez, ancak renkleri belirtiriz. */
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 transparent;
+}
+
+/* ------------------------------------------- */
