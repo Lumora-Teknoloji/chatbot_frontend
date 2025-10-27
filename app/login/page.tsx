@@ -7,8 +7,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('onder'); // Hızlı test için varsayılan değer
-    const [password, setPassword] = useState('123456'); // Hızlı test için varsayılan değer
+    // --- DÜZENLEME: Hızlı test için olan varsayılan değerler kaldırıldı ---
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    // --- DÜZENLEME BİTTİ ---
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login, user, isLoading } = useAuth();

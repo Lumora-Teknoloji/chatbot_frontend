@@ -1,10 +1,9 @@
 // hooks/useChat.ts
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'; // 1. useRef'i import et
 import { ChatMessage } from '@/types/chat';
 
-// RASA SUNUCU AYARLARI (Şimdilik kullanılmıyor)
 const RASA_API_URL = 'http://localhost:5005/webhooks/rest/webhook';
 
 const getSenderId = () => {
@@ -25,18 +24,23 @@ export const useChat = () => {
     const [inputText, setInputText] = useState('');
     const [senderId, setSenderId] = useState<string | null>(null);
 
+    // 2. Çift göndermeyi engellemek için anlık bir kilit (ref) ekle
+    const isSending = useRef(false);
+
     useEffect(() => {
         const id = getSenderId();
         setSenderId(id);
     }, []);
 
-    // GÜNCELLENMİŞ sendMessage FONKSİYONU
     const sendMessage = useCallback(async (text: string) => {
-        if (!text.trim() || isLoading || !senderId) return;
 
+        // 3. Guard (koruma) kontrolüne 'isSending.current'ı ekle
+        if (!text.trim() || isLoading || !senderId || isSending.current) return;
+
+        // 4. Kilidi anında (senkron olarak) aktif et
+        isSending.current = true;
         setIsLoading(true);
 
-        // 1. Kullanıcının mesajını anında arayüze ekle (bu davranış aynı kalıyor)
         const userMessage: ChatMessage = {
             id: Date.now().toString() + '-u',
             sender: 'user',
@@ -45,30 +49,6 @@ export const useChat = () => {
         };
         setMessages(prev => [...prev, userMessage]);
         setInputText('');
-
-        // --- RASA BAĞLANTISI YAPILANA KADAR GEÇİCİ KOD BAŞLANGICI ---
-
-        // 2. Botun "denemesini" simüle etmek için 1 saniye bekle
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 3. Otomatik hata mesajını oluştur
-        const aiErrorMessage: ChatMessage = {
-            id: Date.now().toString() + '-ai-error',
-            sender: 'ai',
-            content: 'Mesaj gönderilemedi. Backend bağlantısı henüz aktif değil.',
-            timestamp: Date.now(),
-        };
-
-        // 4. Hata mesajını sohbet listesine ekle
-        setMessages(prev => [...prev, aiErrorMessage]);
-
-        // 5. Yükleme durumunu bitir
-        setIsLoading(false);
-
-        // --- GEÇİCİ KOD BİTİŞİ ---
-
-
-        /* --- GERÇEK API ÇAĞRISI (Gelecekte bu kısmı kullanacaksınız) ---
 
         try {
             const response = await fetch(RASA_API_URL, {
@@ -104,10 +84,10 @@ export const useChat = () => {
             };
             setMessages(prev => [...prev, aiErrorMessage]);
         } finally {
+            // 5. Kilidi 'finally' bloğunda serbest bırak
+            isSending.current = false;
             setIsLoading(false);
         }
-
-        */
 
     }, [isLoading, senderId]);
 
