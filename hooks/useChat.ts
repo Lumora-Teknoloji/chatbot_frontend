@@ -96,7 +96,7 @@ export const useChat = () => {
         setMessages([]);
     }, []);
 
-    const uploadFile = useCallback(async (file: File) => {
+    const uploadFile = useCallback(async (file: File, addToChat: boolean = true) => {
         if (!senderId) {
             throw new Error('Sender ID bulunamadı');
         }
@@ -122,65 +122,91 @@ export const useChat = () => {
                 throw new Error('Yükleme yanıtı geçersiz');
             }
 
-            // 2. Rasa'ya /gorsel_yuklendi event'ini gönder
-            // Rasa formatı: /intent_name{"key": "value"} şeklinde JSON string olarak gönderilir
-            try {
-                const rasaResponse = await fetch(RASA_ACTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        sender: senderId,
-                        message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
-                    }),
-                });
+            // Eğer addToChat true ise mesaj olarak ekle
+            if (addToChat) {
+                // 2. Rasa'ya /gorsel_yuklendi event'ini gönder
+                // Rasa formatı: /intent_name{"key": "value"} şeklinde JSON string olarak gönderilir
+                try {
+                    const rasaResponse = await fetch(RASA_ACTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sender: senderId,
+                            message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
+                        }),
+                    });
 
-                if (rasaResponse.ok) {
-                    // Rasa'dan gelen yanıtları mesaj olarak ekle
-                    const rasaMessages = await rasaResponse.json();
-                    const aiMessages: ChatMessage[] = rasaMessages.map((msg: any, index: number) => ({
-                        id: `${Date.now()}-ai-${index}`,
-                        sender: 'ai',
-                        content: msg.text || 'Görsel yüklendi.',
-                        timestamp: Date.now(),
-                    }));
-                    setMessages(prev => [...prev, ...aiMessages]);
-                } else {
-                    console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaResponse.status);
+                    if (rasaResponse.ok) {
+                        // Rasa'dan gelen yanıtları mesaj olarak ekle
+                        const rasaMessages = await rasaResponse.json();
+                        const aiMessages: ChatMessage[] = rasaMessages.map((msg: any, index: number) => ({
+                            id: `${Date.now()}-ai-${index}`,
+                            sender: 'ai',
+                            content: msg.text || 'Görsel yüklendi.',
+                            timestamp: Date.now(),
+                        }));
+                        setMessages(prev => [...prev, ...aiMessages]);
+                    } else {
+                        console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaResponse.status);
+                    }
+                } catch (rasaError) {
+                    // Rasa'ya bildirim gönderilemese bile görsel yükleme başarılı
+                    console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaError);
                 }
-            } catch (rasaError) {
-                // Rasa'ya bildirim gönderilemese bile görsel yükleme başarılı
-                console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaError);
-                // Kullanıcıya bilgi mesajı ekle
-                const infoMessage: ChatMessage = {
-                    id: Date.now().toString() + '-ai-info',
-                    sender: 'ai',
-                    content: 'Görsel başarıyla yüklendi.',
+
+                // 3. Kullanıcı mesajı olarak görseli ekle
+                const userMessage: ChatMessage = {
+                    id: Date.now().toString() + '-u-image',
+                    sender: 'user',
+                    content: '',
+                    imageUrl: url,
                     timestamp: Date.now(),
                 };
-                setMessages(prev => [...prev, infoMessage]);
+                
+                console.log('Görsel mesajı ekleniyor:', userMessage);
+                setMessages(prev => {
+                    const newMessages = [...prev, userMessage];
+                    console.log('Yeni mesaj listesi:', newMessages);
+                    return newMessages;
+                });
             }
-
-            // 3. Kullanıcı mesajı olarak görseli ekle
-            const userMessage: ChatMessage = {
-                id: Date.now().toString() + '-u-image',
-                sender: 'user',
-                content: '',
-                imageUrl: url,
-                timestamp: Date.now(),
-            };
-            
-            console.log('Görsel mesajı ekleniyor:', userMessage);
-            setMessages(prev => {
-                const newMessages = [...prev, userMessage];
-                console.log('Yeni mesaj listesi:', newMessages);
-                return newMessages;
-            });
 
             return url;
         } catch (error) {
             console.error('Dosya yüklenirken hata oluştu:', error);
             throw error;
         }
+    }, [senderId]);
+
+    // Görsel URL'lerini chat'e eklemek için yardımcı fonksiyon
+    const addImageMessages = useCallback((imageUrls: string[]) => {
+        if (!senderId) {
+            console.error('Sender ID bulunamadı');
+            return;
+        }
+
+        imageUrls.forEach(url => {
+            // Rasa'ya bildirim gönder
+            fetch(RASA_ACTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender: senderId,
+                    message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
+                }),
+            }).catch(err => console.warn('Rasa\'ya görsel bildirimi gönderilemedi:', err));
+
+            // Kullanıcı mesajı olarak görseli ekle
+            const userMessage: ChatMessage = {
+                id: Date.now().toString() + '-u-image-' + Math.random().toString(36).substring(7),
+                sender: 'user',
+                content: '',
+                imageUrl: url,
+                timestamp: Date.now(),
+            };
+            
+            setMessages(prev => [...prev, userMessage]);
+        });
     }, [senderId]);
 
     return useMemo(() => ({
@@ -192,5 +218,6 @@ export const useChat = () => {
         inputText,
         setInputText,
         uploadFile,
-    }), [messages, isLoading, sendMessage, startNewChat, inputText, uploadFile]);
+        addImageMessages,
+    }), [messages, isLoading, sendMessage, startNewChat, inputText, uploadFile, addImageMessages]);
 };
