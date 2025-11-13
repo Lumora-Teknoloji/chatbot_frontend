@@ -53,16 +53,25 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                     onError={(e) => {
                                         console.error('Görsel yüklenemedi:', message.imageUrl);
                                         const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
                                         const parent = target.parentElement;
-                                        if (parent) {
-                                            parent.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Görsel yüklenemedi</div>';
+                                        if (parent && !parent.querySelector('.error-message')) {
+                                            const errorDiv = document.createElement('div');
+                                            errorDiv.className = 'error-message absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 p-4';
+                                            errorDiv.innerHTML = `
+                                                <div class="text-red-400 text-sm mb-2">Görsel yüklenemedi</div>
+                                                <a href="${message.imageUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 text-xs hover:underline">
+                                                    Linki aç
+                                                </a>
+                                            `;
+                                            parent.appendChild(errorDiv);
+                                            target.style.opacity = '0.3';
                                         }
                                     }}
                                     onLoad={() => {
                                         console.log('Görsel başarıyla yüklendi:', message.imageUrl);
                                     }}
                                     loading="lazy"
+                                    crossOrigin="anonymous"
                                 />
                             </div>
                         </div>

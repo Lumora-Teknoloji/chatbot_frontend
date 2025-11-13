@@ -168,7 +168,13 @@ export const useChat = () => {
                 imageUrl: url,
                 timestamp: Date.now(),
             };
-            setMessages(prev => [...prev, userMessage]);
+            
+            console.log('Görsel mesajı ekleniyor:', userMessage);
+            setMessages(prev => {
+                const newMessages = [...prev, userMessage];
+                console.log('Yeni mesaj listesi:', newMessages);
+                return newMessages;
+            });
 
             return url;
         } catch (error) {
