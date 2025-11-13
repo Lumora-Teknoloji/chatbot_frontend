@@ -71,7 +71,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                         console.log('Görsel başarıyla yüklendi:', message.imageUrl);
                                     }}
                                     loading="lazy"
-                                    crossOrigin="anonymous"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    decoding="async"
                                 />
                             </div>
                         </div>
