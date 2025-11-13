@@ -100,6 +100,45 @@ AWS_SECRET_ACCESS_KEY=your-secret-access-key
 4. Access Key ve Secret Key'i oluşturun
 5. S3'te bir bucket oluşturun
 
+### S3 Bucket Policy Ekleme (Görsellerin Görünmesi İçin Gerekli)
+
+Görsellerin tüm bilgisayarlarda ve cihazlarda görünmesi için S3 bucket'ınıza bucket policy eklemeniz gerekiyor:
+
+1. AWS Console → S3 → Bucket'ınızı seçin
+2. **Permissions** sekmesine gidin
+3. **Bucket Policy** bölümüne tıklayın
+4. **Edit** butonuna tıklayın
+5. Aşağıdaki policy'yi yapıştırın (bucket adınızı değiştirin):
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::BUCKET_ADINIZ/uploads/*"
+        }
+    ]
+}
+```
+
+**Önemli:** `BUCKET_ADINIZ` yerine `.env.local` dosyanızdaki `S3_BUCKET_NAME` değerini yazın.
+
+6. **Save changes** butonuna tıklayın
+
+7. **Block Public Access** ayarlarını kontrol edin:
+   - **Permissions** → **Block public access (bucket settings)**
+   - **Edit** butonuna tıklayın
+   - En azından **"Block public access to buckets and objects granted through new public bucket or access point policies"** seçeneğini **kapatın**
+   - **Save changes** butonuna tıklayın
+
+**Not:** Proje klasöründe `S3_BUCKET_POLICY.json` dosyası referans olarak bulunmaktadır.
+
+Bucket policy ekledikten sonra görseller tüm bilgisayarlarda ve cihazlarda görünecektir.
+
 ## 🎯 Kullanım
 
 ### Geliştirme Modunda Çalıştırma

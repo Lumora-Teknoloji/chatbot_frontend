@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
 
         await s3Client.send(command);
 
-        // Presigned URL oluştur (bucket policy olmadan da çalışır, 1 yıl geçerli)
-        // Bu geçici bir çözüm - ideal olarak bucket policy kullanılmalı
+        // Presigned URL oluştur (bucket policy olmadan da çalışır)
+        // Bucket policy eklendikten sonra public URL kullanılabilir
         const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
         const { GetObjectCommand } = await import('@aws-sdk/client-s3');
         
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
             Key: key,
         });
 
-        // Presigned URL oluştur (maksimum 7 gün geçerli - AWS limiti)
+        // Presigned URL oluştur (7 gün geçerli - AWS maksimum limiti)
         const presignedUrl = await getSignedUrl(s3Client, getObjectCommand, { 
-            expiresIn: 604800 // 7 gün (saniye cinsinden) - AWS maksimum limiti
+            expiresIn: 604800 // 7 gün (saniye cinsinden)
         });
 
-        // Public URL de döndür (bucket policy eklendikten sonra kullanılabilir)
+        // Public URL de oluştur (bucket policy eklendikten sonra kullanılabilir)
         let publicUrl: string;
         if (S3_REGION === 'us-east-1') {
             publicUrl = `https://${S3_BUCKET}.s3.amazonaws.com/${key}`;
@@ -83,10 +83,14 @@ export async function POST(request: NextRequest) {
             publicUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
         }
 
+        // Environment variable ile public URL kullanımını kontrol et
+        // USE_PUBLIC_URL=true ise public URL kullan (bucket policy gerekli)
+        const USE_PUBLIC_URL = process.env.USE_PUBLIC_URL === 'true';
+        
         return NextResponse.json({
             success: true,
-            url: presignedUrl, // Presigned URL kullan (bucket policy olmadan çalışır)
-            publicUrl, // Public URL (bucket policy eklendikten sonra kullanılabilir)
+            url: USE_PUBLIC_URL ? publicUrl : presignedUrl, // Varsayılan: presigned URL (çalışır)
+            publicUrl, // Referans için public URL de döndür
             key,
         });
     } catch (error) {
