@@ -65,16 +65,33 @@ export default function Home() {
         const files = event.target.files;
         if (files) {
             Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) handleFileUpload(file);
+                if (file.type.startsWith('image/')) {
+                    // Sadece preview ekle, yükleme yapma (gönder butonuna basılınca yüklenecek)
+                    const id = `${file.name}-${Date.now()}`;
+                    const previewUrl = URL.createObjectURL(file);
+                    const newFile: AttachedFile = { 
+                        id, 
+                        file, 
+                        status: 'idle', // Henüz yüklenmedi
+                        name: file.name, 
+                        type: file.type, 
+                        previewUrl 
+                    };
+                    setAttachedFiles(prev => [...prev, newFile]);
+                }
             });
+        }
+        // Input'u temizle ki aynı dosya tekrar seçilebilsin
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
-    const handleFileUpload = async (file: File) => {
-        const id = `${file.name}-${Date.now()}`;
-        const previewUrl = URL.createObjectURL(file);
-        const newFile: AttachedFile = { id, file, status: 'uploading', name: file.name, type: file.type, previewUrl };
-        setAttachedFiles(prev => [...prev, newFile]);
+    const handleFileUpload = async (file: File, fileId: string) => {
+        // Yükleme başladı
+        setAttachedFiles(prev =>
+            prev.map(f => f.id === fileId ? { ...f, status: 'uploading' } : f)
+        );
 
         try {
             // useChat'teki uploadFile fonksiyonunu kullanarak S3'e yükle
@@ -82,17 +99,15 @@ export default function Home() {
             
             // Başarılı yükleme
             setAttachedFiles(prev =>
-                prev.map(f => f.id === id ? { ...f, status: 'success' } : f)
+                prev.map(f => f.id === fileId ? { ...f, status: 'success' } : f)
             );
         } catch (error) {
             console.error('Dosya yükleme hatası:', error);
             // Hata durumunda
             setAttachedFiles(prev =>
-                prev.map(f => f.id === id ? { ...f, status: 'error' } : f)
+                prev.map(f => f.id === fileId ? { ...f, status: 'error' } : f)
             );
-        } finally {
-            // Preview URL'i temizle
-            URL.revokeObjectURL(previewUrl);
+            throw error; // Hata durumunu yukarı fırlat
         }
     };
 
@@ -102,18 +117,43 @@ export default function Home() {
         setAttachedFiles(prev => prev.filter(f => f.id !== idToRemove));
     };
 
-    const handleInputSubmit = (e: React.FormEvent) => {
+    const handleInputSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const allUploaded = attachedFiles.every(f => f.status === 'success' || f.status === 'error');
-        if (isLoading || !allUploaded) return;
+        
+        // Eğer yükleme devam ediyorsa veya yüklenmemiş dosya varsa bekle
+        const hasUploading = attachedFiles.some(f => f.status === 'uploading');
+        const hasIdleFiles = attachedFiles.some(f => f.status === 'idle');
+        
+        if (isLoading || hasUploading) return;
 
-        // Dosyalar zaten uploadFile fonksiyonu tarafından yüklendi ve mesaj olarak eklendi
-        // Sadece metin mesajı varsa gönder
+        // Önce yüklenmemiş dosyaları yükle
+        if (hasIdleFiles) {
+            const idleFiles = attachedFiles.filter(f => f.status === 'idle');
+            
+            try {
+                // Tüm dosyaları paralel olarak yükle
+                await Promise.all(
+                    idleFiles.map(file => handleFileUpload(file.file, file.id))
+                );
+            } catch (error) {
+                // Hata durumunda işlemi durdur
+                console.error('Dosya yükleme hatası:', error);
+                return;
+            }
+        }
+
+        // Tüm dosyalar yüklendikten sonra mesajı gönder
         const messageToSend = inputText.trim();
         if (messageToSend) {
             sendMessage(messageToSend);
         }
         
+        // Dosyaları ve input'u temizle
+        attachedFiles.forEach(file => {
+            if (file.previewUrl) {
+                URL.revokeObjectURL(file.previewUrl);
+            }
+        });
         setAttachedFiles([]);
         setInputText('');
         
@@ -132,6 +172,11 @@ export default function Home() {
                             <div className="flex items-center gap-3">
                                 <div className="relative">
                                     <Image src={file.previewUrl} alt={file.name} width={40} height={40} className="rounded-lg object-cover border border-gray-700"/>
+                                    {file.status === 'idle' && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                                            <div className="text-xs text-white bg-blue-500/80 px-2 py-1 rounded">Bekliyor</div>
+                                        </div>
+                                    )}
                                     {file.status === 'uploading' && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -170,11 +215,11 @@ export default function Home() {
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInputSubmit(e); } }}
                     disabled={isLoading || attachedFiles.some(f => f.status === 'uploading')}
-                    placeholder={attachedFiles.length > 0 ? "Dosyalar hakkında bir soru sorun..." : "Mesajınızı yazın..."}
+                    placeholder={attachedFiles.length > 0 ? "Mesajınızı yazın ve gönder butonuna basın..." : "Mesajınızı yazın..."}
                     className="flex-1 p-4 pr-16 bg-gray-800/50 backdrop-blur-sm text-white rounded-2xl border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-xl placeholder:text-gray-500 resize-none overflow-y-auto transition-all duration-200"
                     style={{ minHeight: '56px', maxHeight: '120px' }}
                 />
-                <button type="submit" disabled={isLoading || attachedFiles.some(f => f.status === 'uploading') || (!inputText.trim() && attachedFiles.length === 0)} className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-200 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed cursor-pointer shadow-lg hover:shadow-blue-500/50 disabled:shadow-none group">
+                <button type="submit" disabled={isLoading || attachedFiles.some(f => f.status === 'uploading') || (!inputText.trim() && attachedFiles.length === 0)} className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-200 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed cursor-pointer shadow-lg hover:shadow-blue-500/50 disabled:shadow-none group" title={attachedFiles.length > 0 ? "Görselleri yükle ve mesajı gönder" : "Mesajı gönder"}>
                     {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
