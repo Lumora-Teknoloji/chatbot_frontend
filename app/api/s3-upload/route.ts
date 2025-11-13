@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(arrayBuffer);
 
         // S3'e yükle
+        // Not: ACL kullanılmıyor çünkü modern S3 bucket'ları ACL'leri devre dışı bırakır
+        // Public erişim bucket policy ile sağlanmalı
         const command = new PutObjectCommand({
             Bucket: S3_BUCKET,
             Key: key,
@@ -58,12 +60,33 @@ export async function POST(request: NextRequest) {
 
         await s3Client.send(command);
 
-        // Public URL oluştur
-        const url = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+        // Presigned URL oluştur (bucket policy olmadan da çalışır, 1 yıl geçerli)
+        // Bu geçici bir çözüm - ideal olarak bucket policy kullanılmalı
+        const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+        const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+        
+        const getObjectCommand = new GetObjectCommand({
+            Bucket: S3_BUCKET,
+            Key: key,
+        });
+
+        // Presigned URL oluştur (maksimum 7 gün geçerli - AWS limiti)
+        const presignedUrl = await getSignedUrl(s3Client, getObjectCommand, { 
+            expiresIn: 604800 // 7 gün (saniye cinsinden) - AWS maksimum limiti
+        });
+
+        // Public URL de döndür (bucket policy eklendikten sonra kullanılabilir)
+        let publicUrl: string;
+        if (S3_REGION === 'us-east-1') {
+            publicUrl = `https://${S3_BUCKET}.s3.amazonaws.com/${key}`;
+        } else {
+            publicUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+        }
 
         return NextResponse.json({
             success: true,
-            url,
+            url: presignedUrl, // Presigned URL kullan (bucket policy olmadan çalışır)
+            publicUrl, // Public URL (bucket policy eklendikten sonra kullanılabilir)
             key,
         });
     } catch (error) {

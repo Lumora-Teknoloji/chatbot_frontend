@@ -45,11 +45,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                     {/* Resim gösterimi */}
                     {message.imageUrl && (
                         <div className="mb-3 -mx-1">
-                            <div className="relative rounded-xl overflow-hidden border border-gray-700/50 shadow-lg">
+                            <div className="relative rounded-xl overflow-hidden border border-gray-700/50 shadow-lg bg-gray-900/50">
                                 <img 
                                     src={message.imageUrl} 
                                     alt="Yüklenen görsel" 
                                     className="max-w-full h-auto object-contain max-h-96 w-full"
+                                    onError={(e) => {
+                                        console.error('Görsel yüklenemedi:', message.imageUrl);
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const parent = target.parentElement;
+                                        if (parent) {
+                                            parent.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Görsel yüklenemedi</div>';
+                                        }
+                                    }}
+                                    onLoad={() => {
+                                        console.log('Görsel başarıyla yüklendi:', message.imageUrl);
+                                    }}
+                                    loading="lazy"
                                 />
                             </div>
                         </div>
