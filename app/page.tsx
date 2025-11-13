@@ -27,7 +27,7 @@ const CloseIcon = () => (
 );
 
 export default function Home() {
-    const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText } = useChat();
+    const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText, uploadFile } = useChat();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -63,17 +63,30 @@ export default function Home() {
         }
     };
 
-    const handleFileUpload = (file: File) => {
+    const handleFileUpload = async (file: File) => {
         const id = `${file.name}-${Date.now()}`;
         const previewUrl = URL.createObjectURL(file);
         const newFile: AttachedFile = { id, file, status: 'uploading', name: file.name, type: file.type, previewUrl };
         setAttachedFiles(prev => [...prev, newFile]);
 
-        setTimeout(() => {
+        try {
+            // useChat'teki uploadFile fonksiyonunu kullanarak S3'e yükle
+            await uploadFile(file);
+            
+            // Başarılı yükleme
             setAttachedFiles(prev =>
-                prev.map(f => f.id === id ? { ...f, status: 'success', path: `uploaded_files/${f.name}` } : f)
+                prev.map(f => f.id === id ? { ...f, status: 'success' } : f)
             );
-        }, 1500);
+        } catch (error) {
+            console.error('Dosya yükleme hatası:', error);
+            // Hata durumunda
+            setAttachedFiles(prev =>
+                prev.map(f => f.id === id ? { ...f, status: 'error' } : f)
+            );
+        } finally {
+            // Preview URL'i temizle
+            URL.revokeObjectURL(previewUrl);
+        }
     };
 
     const handleRemoveAttachedFile = (idToRemove: string) => {
@@ -84,17 +97,16 @@ export default function Home() {
 
     const handleInputSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const allUploaded = attachedFiles.every(f => f.status === 'success');
+        const allUploaded = attachedFiles.every(f => f.status === 'success' || f.status === 'error');
         if (isLoading || !allUploaded) return;
 
-        let messageToSend = inputText.trim();
-        if (attachedFiles.length > 0) {
-            const fileNames = attachedFiles.map(f => f.name).join(', ');
-            messageToSend = `[DOSYALAR: ${fileNames}] ${messageToSend}`;
+        // Dosyalar zaten uploadFile fonksiyonu tarafından yüklendi ve mesaj olarak eklendi
+        // Sadece metin mesajı varsa gönder
+        const messageToSend = inputText.trim();
+        if (messageToSend) {
+            sendMessage(messageToSend);
         }
-        if (!messageToSend) return;
-
-        sendMessage(messageToSend);
+        
         setAttachedFiles([]);
         setInputText('');
     };
@@ -109,6 +121,7 @@ export default function Home() {
                                 <Image src={file.previewUrl} alt={file.name} width={32} height={32} className="rounded object-cover"/>
                                 <span className="text-xs text-gray-300 truncate">{file.name}</span>
                                 {file.status === 'uploading' && <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />}
+                                {file.status === 'error' && <span className="text-xs text-red-400">Hata</span>}
                             </div>
                             <button type="button" onClick={() => handleRemoveAttachedFile(file.id)} className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-gray-700">
                                 <CloseIcon />

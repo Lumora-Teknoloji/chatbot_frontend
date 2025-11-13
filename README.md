@@ -1,5 +1,16 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Proje çalışması için S3 yapılandırması gereklidir. `.env.local` dosyası oluşturun ve aşağıdaki değişkenleri ekleyin:
+
+```env
+S3_BUCKET_NAME=your-bucket-name
+S3_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+```
+
 ## Getting Started
 
 First, run the development server:

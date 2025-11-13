@@ -33,13 +33,26 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                   // KRİTİK: Taşan kelimeleri zorla kır.
                   break-words overflow-hidden`}>
 
-                    {isUser
-                        // Kullanıcı metnini düz göster (whitespace-pre-wrap metni olduğu gibi tutar, break-words zorlar)
-                        ? <p className="text-gray-200 whitespace-pre-wrap break-words">{message.content}</p>
+                    {/* Resim gösterimi */}
+                    {message.imageUrl && (
+                        <div className="mb-2">
+                            <img 
+                                src={message.imageUrl} 
+                                alt="Yüklenen görsel" 
+                                className="max-w-full h-auto rounded-lg object-contain max-h-96"
+                            />
+                        </div>
+                    )}
 
-                        // AI metnini Markdown ile render et
-                        : <MarkdownRenderer content={message.content} />  // AI metnini Markdown ile render et
-                    }
+                    {/* Metin içeriği */}
+                    {message.content && (
+                        isUser
+                            // Kullanıcı metnini düz göster (whitespace-pre-wrap metni olduğu gibi tutar, break-words zorlar)
+                            ? <p className="text-gray-200 whitespace-pre-wrap break-words">{message.content}</p>
+
+                            // AI metnini Markdown ile render et
+                            : <MarkdownRenderer content={message.content} />  // AI metnini Markdown ile render et
+                    )}
                 </div>
             </div>
 

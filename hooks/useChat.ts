@@ -5,6 +5,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'; // 1.
 import { ChatMessage } from '@/types/chat';
 
 const RASA_API_URL = 'http://localhost:5005/webhooks/rest/webhook';
+const RASA_ACTION_URL = 'http://localhost:5005/webhooks/rest/webhook';
 
 const getSenderId = () => {
     if (typeof window === 'undefined') {
@@ -95,6 +96,87 @@ export const useChat = () => {
         setMessages([]);
     }, []);
 
+    const uploadFile = useCallback(async (file: File) => {
+        if (!senderId) {
+            throw new Error('Sender ID bulunamadı');
+        }
+
+        try {
+            // Alternatif yöntem: Next.js API route üzerinden yükleme (CORS sorunu olmaz)
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadResponse = await fetch('/api/s3-upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+                throw new Error(errorData.error || `Dosya yüklenemedi (${uploadResponse.status})`);
+            }
+
+            const { url } = await uploadResponse.json();
+            
+            if (!url) {
+                throw new Error('Yükleme yanıtı geçersiz');
+            }
+
+            // 2. Rasa'ya /gorsel_yuklendi event'ini gönder
+            // Rasa formatı: /intent_name{"key": "value"} şeklinde JSON string olarak gönderilir
+            try {
+                const rasaResponse = await fetch(RASA_ACTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender: senderId,
+                        message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
+                    }),
+                });
+
+                if (rasaResponse.ok) {
+                    // Rasa'dan gelen yanıtları mesaj olarak ekle
+                    const rasaMessages = await rasaResponse.json();
+                    const aiMessages: ChatMessage[] = rasaMessages.map((msg: any, index: number) => ({
+                        id: `${Date.now()}-ai-${index}`,
+                        sender: 'ai',
+                        content: msg.text || 'Görsel yüklendi.',
+                        timestamp: Date.now(),
+                    }));
+                    setMessages(prev => [...prev, ...aiMessages]);
+                } else {
+                    console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaResponse.status);
+                }
+            } catch (rasaError) {
+                // Rasa'ya bildirim gönderilemese bile görsel yükleme başarılı
+                console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaError);
+                // Kullanıcıya bilgi mesajı ekle
+                const infoMessage: ChatMessage = {
+                    id: Date.now().toString() + '-ai-info',
+                    sender: 'ai',
+                    content: 'Görsel başarıyla yüklendi.',
+                    timestamp: Date.now(),
+                };
+                setMessages(prev => [...prev, infoMessage]);
+            }
+
+            // 3. Kullanıcı mesajı olarak görseli ekle
+            const userMessage: ChatMessage = {
+                id: Date.now().toString() + '-u-image',
+                sender: 'user',
+                content: '',
+                imageUrl: url,
+                timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, userMessage]);
+
+            return url;
+        } catch (error) {
+            console.error('Dosya yüklenirken hata oluştu:', error);
+            throw error;
+        }
+    }, [senderId]);
+
     return useMemo(() => ({
         messages,
         isLoading,
@@ -103,5 +185,6 @@ export const useChat = () => {
         isChatStarted: messages.length > 0,
         inputText,
         setInputText,
-    }), [messages, isLoading, sendMessage, startNewChat, inputText]);
+        uploadFile,
+    }), [messages, isLoading, sendMessage, startNewChat, inputText, uploadFile]);
 };
