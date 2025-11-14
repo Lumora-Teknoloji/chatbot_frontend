@@ -8,3 +8,4 @@ export interface ChatMessage {
     timestamp: number; // Mesajın ne zaman gönderildiği
     imageUrl?: string; // Resim URL'i (opsiyonel)
 }
+

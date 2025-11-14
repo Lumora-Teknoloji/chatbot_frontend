@@ -1,16 +1,14 @@
-// hooks/useChat.ts
+// hooks/useChat.ts (SİZİN TİP TANIMINIZA GÖRE DÜZELTİLDİ)
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'; // 1. useRef'i import et
-import { ChatMessage } from '@/types/chat';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { ChatMessage } from '@/types/chat'; // Sizin dosyanız
+import { io, Socket } from 'socket.io-client';
 
-const RASA_API_URL = 'http://localhost:5005/webhooks/rest/webhook';
-const RASA_ACTION_URL = 'http://localhost:5005/webhooks/rest/webhook';
+const RASA_SERVER_URL = 'http://localhost:5005';
 
 const getSenderId = () => {
-    if (typeof window === 'undefined') {
-        return '';
-    }
+    if (typeof window === 'undefined') return '';
     let senderId = localStorage.getItem('rasa-sender-id');
     if (!senderId) {
         senderId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -24,200 +22,134 @@ export const useChat = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [inputText, setInputText] = useState('');
     const [senderId, setSenderId] = useState<string | null>(null);
+    const socketRef = useRef<Socket | null>(null);
 
-    // 2. Çift göndermeyi engellemek için anlık bir kilit (ref) ekle
-    const isSending = useRef(false);
-
+    // --- 1. BAĞLANTIYI KUR (Socket.IO) ---
     useEffect(() => {
         const id = getSenderId();
         setSenderId(id);
+
+        socketRef.current = io(RASA_SERVER_URL, {
+            transports: ['websocket'],
+        });
+        const socket = socketRef.current;
+
+        socket.on('connect', () => {
+            console.log("✅ Rasa'ya bağlandı (Socket.IO)");
+            socket.emit('session_request', { session_id: id });
+        });
+
+        socket.on('disconnect', () => {
+            console.log("❌ Rasa bağlantısı koptu.");
+        });
+
+        // --- 2. BOT MESAJINI DİNLE (Kritik Kısım) ---
+        socket.on('bot_uttered', (data: any) => {
+            console.log("📩 Bot mesajı geldi:", data);
+
+            const aiMessage: ChatMessage = {
+                id: `${Date.now()}-ai-${Math.random()}`,
+                sender: 'ai',
+
+                // DÜZELTME: content: string olduğu için null yerine '' (boş string)
+                content: data.text || '',
+
+                // DÜZELTME: 'image' yerine 'imageUrl' kullanıldı
+                imageUrl: data.image || (data.attachment ? data.attachment.payload.src : null),
+
+                timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setIsLoading(false);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, []);
 
-    const sendMessage = useCallback(async (text: string) => {
-
-        // 3. Guard (koruma) kontrolüne 'isSending.current'ı ekle
-        if (!text.trim() || isLoading || !senderId || isSending.current) return;
-
-        // 4. Kilidi anında (senkron olarak) aktif et
-        isSending.current = true;
-        setIsLoading(true);
+    // --- 3. MESAJ GÖNDERME (Socket Üzerinden) ---
+    const sendMessage = useCallback((text: string) => {
+        if (!text.trim() || !socketRef.current || isLoading) return;
 
         const userMessage: ChatMessage = {
             id: Date.now().toString() + '-u',
             sender: 'user',
             content: text,
+            // imageUrl: null, (Opsiyonel olduğu için eklemeye gerek yok)
             timestamp: Date.now(),
         };
         setMessages(prev => [...prev, userMessage]);
         setInputText('');
+        setIsLoading(true);
+
+        socketRef.current.emit('user_uttered', {
+            message: text,
+            session_id: senderId,
+        });
+    }, [senderId, isLoading]);
+
+    // --- 4. DOSYA YÜKLEME (Hibrit: REST Upload + Socket Trigger) ---
+    const uploadFile = useCallback(async (file: File) => {
+        if (isLoading || !senderId || !socketRef.current) return;
+
+        setIsLoading(true);
+
+        const optimisticMessage: ChatMessage = {
+            id: Date.now().toString() + '-u-file',
+            sender: 'user',
+            content: `Dosya yükleniyor: ${file.name}`,
+            // imageUrl: null,
+            timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
 
         try {
-            const response = await fetch(RASA_API_URL, {
+            // (Mevcut kodunuzdaki '/api/s3-upload' rotasını kullandığınızı varsayıyorum)
+            const formData = new FormData();
+            formData.append('file', file);
+            const uploadResponse = await fetch('/api/s3-upload', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sender: senderId,
-                    message: text,
-                }),
+                body: formData,
+            });
+            const { url } = await uploadResponse.json();
+            if (!url) throw new Error("S3 URL'i alınamadı.");
+
+            console.log("📤 Dosya S3'e yüklendi:", url);
+
+            socketRef.current.emit('user_uttered', {
+                message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
+                session_id: senderId,
             });
 
-            if (!response.ok) {
-                throw new Error('Rasa server response was not ok.');
-            }
-
-            const rasaResponse = await response.json();
-            const aiMessages: ChatMessage[] = rasaResponse.map((msg: any, index: number) => ({
-                id: `${Date.now()}-ai-${index}`,
-                sender: 'ai',
-                content: msg.text || 'Boş yanıt.',
-                timestamp: Date.now(),
-            }));
-
-            setMessages(prev => [...prev, ...aiMessages]);
+            setMessages(prev => prev.slice(0, -1));
 
         } catch (error) {
-            console.error("Rasa'ya mesaj gönderilirken hata oluştu:", error);
-            const aiErrorMessage: ChatMessage = {
-                id: Date.now().toString() + '-ai-error',
-                sender: 'ai',
-                content: 'Üzgünüm, bir sorunla karşılaştım. Lütfen daha sonra tekrar deneyin.',
-                timestamp: Date.now(),
-            };
-            setMessages(prev => [...prev, aiErrorMessage]);
-        } finally {
-            // 5. Kilidi 'finally' bloğunda serbest bırak
-            isSending.current = false;
+            console.error("Yükleme hatası:", error);
             setIsLoading(false);
+            setMessages(prev => [...prev.slice(0, -1), {
+                id: Date.now().toString(),
+                sender: 'ai',
+                content: 'Dosya yüklenirken bir hata oluştu.',
+                // imageUrl: null,
+                timestamp: Date.now()
+            }]);
         }
-
     }, [isLoading, senderId]);
 
     const startNewChat = useCallback(() => {
         setMessages([]);
     }, []);
 
-    const uploadFile = useCallback(async (file: File, addToChat: boolean = true) => {
-        if (!senderId) {
-            throw new Error('Sender ID bulunamadı');
-        }
-
-        try {
-            // Alternatif yöntem: Next.js API route üzerinden yükleme (CORS sorunu olmaz)
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const uploadResponse = await fetch('/api/s3-upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!uploadResponse.ok) {
-                const errorData = await uploadResponse.json().catch(() => ({ error: 'Bilinmeyen hata' }));
-                throw new Error(errorData.error || `Dosya yüklenemedi (${uploadResponse.status})`);
-            }
-
-            const { url } = await uploadResponse.json();
-            
-            if (!url) {
-                throw new Error('Yükleme yanıtı geçersiz');
-            }
-
-            // Eğer addToChat true ise mesaj olarak ekle
-            if (addToChat) {
-                // 2. Rasa'ya /gorsel_yuklendi event'ini gönder
-                // Rasa formatı: /intent_name{"key": "value"} şeklinde JSON string olarak gönderilir
-                try {
-                    const rasaResponse = await fetch(RASA_ACTION_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            sender: senderId,
-                            message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
-                        }),
-                    });
-
-                    if (rasaResponse.ok) {
-                        // Rasa'dan gelen yanıtları mesaj olarak ekle
-                        const rasaMessages = await rasaResponse.json();
-                        const aiMessages: ChatMessage[] = rasaMessages.map((msg: any, index: number) => ({
-                            id: `${Date.now()}-ai-${index}`,
-                            sender: 'ai',
-                            content: msg.text || 'Görsel yüklendi.',
-                            timestamp: Date.now(),
-                        }));
-                        setMessages(prev => [...prev, ...aiMessages]);
-                    } else {
-                        console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaResponse.status);
-                    }
-                } catch (rasaError) {
-                    // Rasa'ya bildirim gönderilemese bile görsel yükleme başarılı
-                    console.warn('Rasa\'ya görsel yükleme bildirimi gönderilemedi:', rasaError);
-                }
-
-                // 3. Kullanıcı mesajı olarak görseli ekle
-                const userMessage: ChatMessage = {
-                    id: Date.now().toString() + '-u-image',
-                    sender: 'user',
-                    content: '',
-                    imageUrl: url,
-                    timestamp: Date.now(),
-                };
-                
-                console.log('Görsel mesajı ekleniyor:', userMessage);
-                setMessages(prev => {
-                    const newMessages = [...prev, userMessage];
-                    console.log('Yeni mesaj listesi:', newMessages);
-                    return newMessages;
-                });
-            }
-
-            return url;
-        } catch (error) {
-            console.error('Dosya yüklenirken hata oluştu:', error);
-            throw error;
-        }
-    }, [senderId]);
-
-    // Görsel URL'lerini chat'e eklemek için yardımcı fonksiyon
-    const addImageMessages = useCallback((imageUrls: string[]) => {
-        if (!senderId) {
-            console.error('Sender ID bulunamadı');
-            return;
-        }
-
-        imageUrls.forEach(url => {
-            // Rasa'ya bildirim gönder
-            fetch(RASA_ACTION_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sender: senderId,
-                    message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
-                }),
-            }).catch(err => console.warn('Rasa\'ya görsel bildirimi gönderilemedi:', err));
-
-            // Kullanıcı mesajı olarak görseli ekle
-            const userMessage: ChatMessage = {
-                id: Date.now().toString() + '-u-image-' + Math.random().toString(36).substring(7),
-                sender: 'user',
-                content: '',
-                imageUrl: url,
-                timestamp: Date.now(),
-            };
-            
-            setMessages(prev => [...prev, userMessage]);
-        });
-    }, [senderId]);
-
     return useMemo(() => ({
         messages,
         isLoading,
         sendMessage,
+        uploadFile,
         startNewChat,
         isChatStarted: messages.length > 0,
         inputText,
         setInputText,
-        uploadFile,
-        addImageMessages,
-    }), [messages, isLoading, sendMessage, startNewChat, inputText, uploadFile, addImageMessages]);
+        // addImageMessages'i çıkardım, 'uploadFile' ana fonksiyondur.
+    }), [messages, isLoading, sendMessage, uploadFile, inputText]);
 };
