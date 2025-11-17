@@ -4,77 +4,80 @@
 // DEĞİŞİKLİK BURADA: 'React,' sonrasındaki virgül kaldırıldı ve eksik hook'lar eklendi.
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
 
-// --- TİPLER ---
+// --- TİPLER VE SAHTE VERİTABANI ---
 interface User {
-    id: number;
     username: string;
     email: string;
-    full_name?: string;
-    created_at?: string;
+    full_name: string;
 }
 
 interface AuthContextType {
     user: User | null;
-    token: string | null;
     isLoading: boolean;
     login: (username: string, password: string) => Promise<void>;
     logout: () => void;
 }
 
-const STORAGE_KEY = 'authData';
+const MOCK_USERS: Record<string, User & { password: string }> = {
+    "onder": {
+        username: "onder",
+        email: "onder@example.com",
+        full_name: "Önder Özmen",
+        password: "123456"
+    },
+    "admin": {
+        username: "admin",
+        email: "admin@example.com",
+        full_name: "Admin User",
+        password: "adminpass"
+    }
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        const loadSession = async () => {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (parsed.token) {
-                        const profile = await api.me(parsed.token);
-                        setUser(profile);
-                        setToken(parsed.token);
-                    }
-                }
-            } catch (error) {
-                console.error("Auth load error:", error);
-                localStorage.removeItem(STORAGE_KEY);
-            } finally {
-                setIsLoading(false);
+        try {
+            const storedUser = localStorage.getItem('authUser');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
             }
-        };
-        loadSession();
+        } catch (error) {
+            console.error("Auth user parse error:", error);
+            localStorage.removeItem('authUser');
+        }
+        setIsLoading(false);
     }, []);
 
     const login = async (username: string, password: string) => {
-        const response = await api.login(username, password);
-        setUser(response.user);
-        setToken(response.access_token);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            token: response.access_token,
-            user: response.user,
-        }));
-        router.push('/');
+        console.log(`Giriş denemesi: ${username}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const foundUser = MOCK_USERS[username];
+
+        if (foundUser && foundUser.password === password) {
+            const { password, ...userData } = foundUser;
+            localStorage.setItem('authUser', JSON.stringify(userData));
+            setUser(userData);
+            router.push('/');
+        } else {
+            throw new Error('Kullanıcı adı veya şifre hatalı.');
+        }
     };
 
     const logout = () => {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('authUser');
         setUser(null);
-        setToken(null);
         router.push('/login');
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

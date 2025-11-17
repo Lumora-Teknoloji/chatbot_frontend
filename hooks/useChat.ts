@@ -4,8 +4,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { ChatMessage } from '@/types/chat'; // Sizin dosyanız
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from '@/app/context/authContext';
-import { api } from '@/lib/api';
 
 const RASA_SERVER_URL = 'http://localhost:5005';
 
@@ -24,14 +22,7 @@ export const useChat = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [inputText, setInputText] = useState('');
     const [senderId, setSenderId] = useState<string | null>(null);
-    const [conversationId, setConversationId] = useState<number | null>(null);
     const socketRef = useRef<Socket | null>(null);
-    const conversationIdRef = useRef<number | null>(null);
-    const { token } = useAuth();
-
-    useEffect(() => {
-        conversationIdRef.current = conversationId;
-    }, [conversationId]);
 
     // --- 1. BAĞLANTIYI KUR (Socket.IO) ---
     useEffect(() => {
@@ -53,7 +44,7 @@ export const useChat = () => {
         });
 
         // --- 2. BOT MESAJINI DİNLE (Kritik Kısım) ---
-        socket.on('bot_uttered', async (data: any) => {
+        socket.on('bot_uttered', (data: any) => {
             console.log("📩 Bot mesajı geldi:", data);
 
             const aiMessage: ChatMessage = {
@@ -70,43 +61,16 @@ export const useChat = () => {
             };
             setMessages(prev => [...prev, aiMessage]);
             setIsLoading(false);
-
-            if (token && conversationIdRef.current) {
-                try {
-                    await api.saveMessage(token, {
-                        conversation_id: conversationIdRef.current,
-                        sender: 'ai',
-                        content: aiMessage.content,
-                        image_url: aiMessage.imageUrl || undefined,
-                    });
-                } catch (error) {
-                    console.error('Bot mesajı kaydedilemedi:', error);
-                }
-            }
         });
 
         return () => {
             socket.disconnect();
         };
-    }, [token]);
-
-    const ensureConversation = useCallback(async () => {
-        if (!token) return null;
-        if (conversationIdRef.current) return conversationIdRef.current;
-        const conversation = await api.createConversation(token);
-        setConversationId(conversation.id);
-        conversationIdRef.current = conversation.id;
-        return conversation.id;
-    }, [token]);
+    }, []);
 
     // --- 3. MESAJ GÖNDERME (Socket Üzerinden) ---
-    const sendMessage = useCallback(async (text: string, imageUrls?: string[]) => {
+    const sendMessage = useCallback((text: string, imageUrls?: string[]) => {
         if ((!text.trim() && (!imageUrls || imageUrls.length === 0)) || !socketRef.current || isLoading) return;
-
-        let activeConversationId: number | null = null;
-        if (token) {
-            activeConversationId = await ensureConversation();
-        }
 
         // Kullanıcı mesajını chat'e ekle
         const userMessage: ChatMessage = {
@@ -119,19 +83,6 @@ export const useChat = () => {
         setMessages(prev => [...prev, userMessage]);
         setInputText('');
         setIsLoading(true);
-
-        if (token && activeConversationId) {
-            try {
-                await api.saveMessage(token, {
-                    conversation_id: activeConversationId,
-                    sender: 'user',
-                    content: userMessage.content,
-                    image_url: userMessage.imageUrl,
-                });
-            } catch (error) {
-                console.error('Mesaj kaydedilemedi:', error);
-            }
-        }
 
         // Eğer görsel varsa, görsel intent'i ile gönder
         if (imageUrls && imageUrls.length > 0) {
@@ -146,7 +97,7 @@ export const useChat = () => {
                 session_id: senderId,
             });
         }
-    }, [senderId, isLoading, token, ensureConversation]);
+    }, [senderId, isLoading]);
 
     // --- 4. DOSYA YÜKLEME (Sadece S3'e yükle, chat'e ekleme) ---
     const uploadFile = useCallback(async (file: File): Promise<string | null> => {
@@ -174,8 +125,6 @@ export const useChat = () => {
 
     const startNewChat = useCallback(() => {
         setMessages([]);
-        setConversationId(null);
-        conversationIdRef.current = null;
     }, []);
 
     return useMemo(() => ({
@@ -187,6 +136,6 @@ export const useChat = () => {
         isChatStarted: messages.length > 0,
         inputText,
         setInputText,
-        conversationId,
-    }), [messages, isLoading, sendMessage, uploadFile, inputText, conversationId]);
+        // addImageMessages'i çıkardım, 'uploadFile' ana fonksiyondur.
+    }), [messages, isLoading, sendMessage, uploadFile, inputText]);
 };

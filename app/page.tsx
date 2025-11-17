@@ -7,8 +7,6 @@ import Sidebar from '@/components/sidebar/sidebar';
 import MessageList from '@/components/chat/messageList';
 import { useChat } from '@/hooks/useChat';
 import Image from 'next/image';
-import { useAuth } from '@/app/context/authContext';
-
 // Görsel durumu için tip
 type UploadStatus = 'uploading' | 'success' | 'error';
 interface AttachedImage {
@@ -26,7 +24,6 @@ const CloseIcon = () => (
 );
 
 export default function Home() {
-    const { user, isLoading: authLoading } = useAuth();
     const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText, uploadFile } = useChat();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +142,7 @@ export default function Home() {
 
         // Mesaj veya görsel varsa gönder
         if (messageToSend || uploadedUrl) {
-            await sendMessage(messageToSend, uploadedUrl);
+            sendMessage(messageToSend, uploadedUrl);
         }
 
         // Preview URL'lerini temizle ve state'i sıfırla
@@ -251,14 +248,6 @@ export default function Home() {
         );
     };
 
-    if (authLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-900">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950">
             <div
@@ -278,11 +267,6 @@ export default function Home() {
             <main className="flex flex-1 flex-col overflow-hidden relative">
                 {/* Arka plan gradient efekti */}
                 <div className="absolute inset-0 bg-gradient-to-b from-blue-900/5 via-transparent to-purple-900/5 pointer-events-none" />
-                {!user && (
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-yellow-500/10 border border-yellow-500/40 text-yellow-200 text-sm rounded-full backdrop-blur">
-                        Misafir modundasınız. Oturum açarak sohbet geçmişinizi kaydedebilirsiniz.
-                    </div>
-                )}
                 
                 {!isChatStarted && (
                     <div className="flex flex-col items-center justify-center h-full text-center relative z-10 px-4">
