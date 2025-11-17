@@ -7,8 +7,6 @@ import NewChatButton from './chatButton';
 import HistoryItem from './historyItem';
 import MenuButton from './menuButton';
 import CustomToolButton from './customToolButton';
-import { useAuth } from '@/app/context/authContext';
-import Link from 'next/link';
 
 interface SidebarProps {
     isVisible: boolean;
@@ -25,7 +23,6 @@ const initialMockHistory = [
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onNewChat }) => {
-    const { user } = useAuth();
     const [history, setHistory] = useState(initialMockHistory);
 
     const handleDelete = (idToDelete: number) => {
@@ -83,27 +80,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onN
                     </div>
                 )}
 
-                <div className="pt-4 mt-auto border-t border-gray-800/50">
-                    <Link href={user ? "/profile" : "/login"} className="w-full">
-                        <div className="flex justify-start items-center p-3 hover:bg-gray-800/50 rounded-xl transition-all duration-200 hover:scale-[1.02] group">
-                            {user ? (
-                                <>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all">
-                                        {user.full_name.charAt(0)}
-                                    </div>
-                                    <span className={`text-sm font-medium truncate ml-3 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>{user.full_name}</span>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-700 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
-                                    </div>
-                                    <span className={`text-sm font-medium truncate ml-3 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>Oturum Aç</span>
-                                </>
-                            )}
-                        </div>
-                    </Link>
-                </div>
             </div>
         </div>
     );
