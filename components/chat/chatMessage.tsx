@@ -1,5 +1,5 @@
 // components/chat/chatMessage.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import MarkdownRenderer from './markdownRenderer';
 // TIP TANIMLARI İÇİN 'type' ANAHTAR KELİMESİNİ KULLANIYORUZ
 import type { ChatMessage } from '@/types/chat';
@@ -9,7 +9,6 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-    const [imageError, setImageError] = useState(false);
     const isUser = message.sender === 'user';
 
     // Mesajın stil ve ikonunu belirleme
@@ -44,37 +43,38 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                   break-words overflow-hidden`}>
 
                     {/* Resim gösterimi */}
-                    {message.imageUrl && !imageError && (
+                    {message.imageUrl && (
                         <div className="mb-3 -mx-1">
                             <div className="relative rounded-xl overflow-hidden border border-gray-700/50 shadow-lg bg-gray-900/50">
                                 <img 
                                     src={message.imageUrl} 
                                     alt="Yüklenen görsel" 
                                     className="max-w-full h-auto object-contain max-h-96 w-full"
-                                    onError={() => {
+                                    onError={(e) => {
                                         console.error('Görsel yüklenemedi:', message.imageUrl);
-                                        setImageError(true);
+                                        const target = e.target as HTMLImageElement;
+                                        const parent = target.parentElement;
+                                        if (parent && !parent.querySelector('.error-message')) {
+                                            const errorDiv = document.createElement('div');
+                                            errorDiv.className = 'error-message absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 p-4';
+                                            errorDiv.innerHTML = `
+                                                <div class="text-red-400 text-sm mb-2">Görsel yüklenemedi</div>
+                                                <a href="${message.imageUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 text-xs hover:underline">
+                                                    Linki aç
+                                                </a>
+                                            `;
+                                            parent.appendChild(errorDiv);
+                                            target.style.opacity = '0.3';
+                                        }
+                                    }}
+                                    onLoad={() => {
+                                        console.log('Görsel başarıyla yüklendi:', message.imageUrl);
                                     }}
                                     loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade"
                                     decoding="async"
                                 />
                             </div>
-                    {imageError && message.imageUrl && (
-                        <div className="mb-3 -mx-1">
-                            <div className="rounded-xl border border-gray-700/50 bg-gray-900/70 p-4 text-center text-sm text-red-300">
-                                Görsel yüklenemedi.{' '}
-                                <a
-                                    href={message.imageUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-400 underline"
-                                >
-                                    Bağlantıyı yeni sekmede aç
-                                </a>
-                            </div>
-                        </div>
-                    )}
                         </div>
                     )}
 
