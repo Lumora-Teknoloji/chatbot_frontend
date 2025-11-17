@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 15);
         const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const key = `uploads/${timestamp}-${randomString}-${sanitizedFileName}`;
+        const key = `uploads/others/${timestamp}-${randomString}-${sanitizedFileName}`;
 
         // AWS SDK v3
         const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');

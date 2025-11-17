@@ -69,73 +69,59 @@ export const useChat = () => {
     }, []);
 
     // --- 3. MESAJ GÖNDERME (Socket Üzerinden) ---
-    const sendMessage = useCallback((text: string) => {
-        if (!text.trim() || !socketRef.current || isLoading) return;
+    const sendMessage = useCallback((text: string, imageUrls?: string[]) => {
+        if ((!text.trim() && (!imageUrls || imageUrls.length === 0)) || !socketRef.current || isLoading) return;
 
+        // Kullanıcı mesajını chat'e ekle
         const userMessage: ChatMessage = {
             id: Date.now().toString() + '-u',
             sender: 'user',
-            content: text,
-            // imageUrl: null, (Opsiyonel olduğu için eklemeye gerek yok)
+            content: text || '',
+            imageUrl: imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
             timestamp: Date.now(),
         };
         setMessages(prev => [...prev, userMessage]);
         setInputText('');
         setIsLoading(true);
 
-        socketRef.current.emit('user_uttered', {
-            message: text,
-            session_id: senderId,
-        });
+        // Eğer görsel varsa, görsel intent'i ile gönder
+        if (imageUrls && imageUrls.length > 0) {
+            const imageUrl = imageUrls[0]; // İlk görseli gönder
+            socketRef.current.emit('user_uttered', {
+                message: text.trim() || `/gorsel_yuklendi{"gorsel_url": "${imageUrl}"}`,
+                session_id: senderId,
+            });
+        } else {
+            socketRef.current.emit('user_uttered', {
+                message: text,
+                session_id: senderId,
+            });
+        }
     }, [senderId, isLoading]);
 
-    // --- 4. DOSYA YÜKLEME (Hibrit: REST Upload + Socket Trigger) ---
-    const uploadFile = useCallback(async (file: File) => {
-        if (isLoading || !senderId || !socketRef.current) return;
-
-        setIsLoading(true);
-
-        const optimisticMessage: ChatMessage = {
-            id: Date.now().toString() + '-u-file',
-            sender: 'user',
-            content: `Dosya yükleniyor: ${file.name}`,
-            // imageUrl: null,
-            timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, optimisticMessage]);
-
+    // --- 4. DOSYA YÜKLEME (Sadece S3'e yükle, chat'e ekleme) ---
+    const uploadFile = useCallback(async (file: File): Promise<string | null> => {
         try {
-            // (Mevcut kodunuzdaki '/api/s3-upload' rotasını kullandığınızı varsayıyorum)
             const formData = new FormData();
             formData.append('file', file);
             const uploadResponse = await fetch('/api/s3-upload', {
                 method: 'POST',
                 body: formData,
             });
+
+            if (!uploadResponse.ok) {
+                throw new Error('S3 yükleme isteği başarısız oldu');
+            }
+
             const { url } = await uploadResponse.json();
             if (!url) throw new Error("S3 URL'i alınamadı.");
 
-            console.log("📤 Dosya S3'e yüklendi:", url);
-
-            socketRef.current.emit('user_uttered', {
-                message: `/gorsel_yuklendi{"gorsel_url": "${url}"}`,
-                session_id: senderId,
-            });
-
-            setMessages(prev => prev.slice(0, -1));
-
+            return url;
         } catch (error) {
             console.error("Yükleme hatası:", error);
-            setIsLoading(false);
-            setMessages(prev => [...prev.slice(0, -1), {
-                id: Date.now().toString(),
-                sender: 'ai',
-                content: 'Dosya yüklenirken bir hata oluştu.',
-                // imageUrl: null,
-                timestamp: Date.now()
-            }]);
+            return null;
         }
-    }, [isLoading, senderId]);
+    }, []);
 
     const startNewChat = useCallback(() => {
         setMessages([]);
