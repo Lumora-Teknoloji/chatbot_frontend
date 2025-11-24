@@ -51,6 +51,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                     alt="Yüklenen görsel" 
                                     className="max-w-full h-auto object-contain max-h-96 w-full"
                                     onError={(e) => {
+                                        // eslint-disable-next-line no-console
                                         console.error('Görsel yüklenemedi:', message.imageUrl);
                                         const target = e.target as HTMLImageElement;
                                         const parent = target.parentElement;
@@ -68,6 +69,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                                         }
                                     }}
                                     onLoad={() => {
+                                        // eslint-disable-next-line no-console
                                         console.log('Görsel başarıyla yüklendi:', message.imageUrl);
                                     }}
                                     loading="lazy"
