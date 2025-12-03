@@ -6,6 +6,7 @@ export interface ChatMessage {
     sender: MessageSender;
     content: string; // Markdown metni buraya gelecek
     timestamp: number; // Mesajın ne zaman gönderildiği
-    imageUrl?: string; // Resim URL'i (opsiyonel)
+    imageUrl?: string; // Resim URL'i (opsiyonel, backward compatibility için)
+    imageUrls?: string[]; // Resim URL'leri (opsiyonel, birden fazla görsel için)
 }
 

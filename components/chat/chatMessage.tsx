@@ -42,43 +42,47 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                   } 
                   break-words overflow-hidden`}>
 
-                    {/* Resim gösterimi */}
-                    {message.imageUrl && (
+                    {/* Resim gösterimi - Birden fazla görseli destekle */}
+                    {(message.imageUrls && message.imageUrls.length > 0) || message.imageUrl ? (
                         <div className="mb-3 -mx-1">
-                            <div className="relative rounded-xl overflow-hidden border border-gray-700/50 shadow-lg bg-gray-900/50">
-                                <img 
-                                    src={message.imageUrl} 
-                                    alt="Yüklenen görsel" 
-                                    className="max-w-full h-auto object-contain max-h-96 w-full"
-                                    onError={(e) => {
-                                        // eslint-disable-next-line no-console
-                                        console.error('Görsel yüklenemedi:', message.imageUrl);
-                                        const target = e.target as HTMLImageElement;
-                                        const parent = target.parentElement;
-                                        if (parent && !parent.querySelector('.error-message')) {
-                                            const errorDiv = document.createElement('div');
-                                            errorDiv.className = 'error-message absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 p-4';
-                                            errorDiv.innerHTML = `
-                                                <div class="text-red-400 text-sm mb-2">Görsel yüklenemedi</div>
-                                                <a href="${message.imageUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 text-xs hover:underline">
-                                                    Linki aç
-                                                </a>
-                                            `;
-                                            parent.appendChild(errorDiv);
-                                            target.style.opacity = '0.3';
-                                        }
-                                    }}
-                                    onLoad={() => {
-                                        // eslint-disable-next-line no-console
-                                        console.log('Görsel başarıyla yüklendi:', message.imageUrl);
-                                    }}
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    decoding="async"
-                                />
+                            <div className="grid grid-cols-1 gap-3">
+                                {(message.imageUrls && message.imageUrls.length > 0 ? message.imageUrls : message.imageUrl ? [message.imageUrl] : []).map((imageUrl, index) => (
+                                    <div key={index} className="relative rounded-xl overflow-hidden border border-gray-700/50 shadow-lg bg-gray-900/50">
+                                        <img 
+                                            src={imageUrl} 
+                                            alt={`AI tarafından üretilen görsel ${index + 1}`} 
+                                            className="max-w-full h-auto object-contain max-h-96 w-full"
+                                            onError={(e) => {
+                                                // eslint-disable-next-line no-console
+                                                console.error('Görsel yüklenemedi:', imageUrl);
+                                                const target = e.target as HTMLImageElement;
+                                                const parent = target.parentElement;
+                                                if (parent && !parent.querySelector('.error-message')) {
+                                                    const errorDiv = document.createElement('div');
+                                                    errorDiv.className = 'error-message absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 p-4';
+                                                    errorDiv.innerHTML = `
+                                                        <div class="text-red-400 text-sm mb-2">Görsel yüklenemedi</div>
+                                                        <a href="${imageUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 text-xs hover:underline">
+                                                            Linki aç
+                                                        </a>
+                                                    `;
+                                                    parent.appendChild(errorDiv);
+                                                    target.style.opacity = '0.3';
+                                                }
+                                            }}
+                                            onLoad={() => {
+                                                // eslint-disable-next-line no-console
+                                                console.log('Görsel başarıyla yüklendi:', imageUrl);
+                                            }}
+                                            loading="lazy"
+                                            referrerPolicy="no-referrer-when-downgrade"
+                                            decoding="async"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    )}
+                    ) : null}
 
                     {/* Metin içeriği */}
                     {message.content && (

@@ -135,8 +135,6 @@ Görsellerin tüm bilgisayarlarda ve cihazlarda görünmesi için S3 bucket'ın�
    - En azından **"Block public access to buckets and objects granted through new public bucket or access point policies"** seçeneğini **kapatın**
    - **Save changes** butonuna tıklayın
 
-**Not:** Proje klasöründe `S3_BUCKET_POLICY.json` dosyası referans olarak bulunmaktadır.
-
 Bucket policy ekledikten sonra görseller tüm bilgisayarlarda ve cihazlarda görünecektir.
 
 ## 🎯 Kullanım

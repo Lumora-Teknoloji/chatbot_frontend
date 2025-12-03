@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Sidebar from '@/components/sidebar/sidebar';
 import MessageList from '@/components/chat/messageList';
 import { useChat } from '@/hooks/useChat';
+import LoginForm from '@/components/auth/loginForm';
 import Image from 'next/image';
 // Görsel durumu için tip
 type UploadStatus = 'uploading' | 'success' | 'error';
@@ -24,6 +25,10 @@ const CloseIcon = () => (
 );
 
 export default function Home() {
+    const [authToken, setAuthToken] = useState<string | null>(null);
+    const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
+    const [isMounted, setIsMounted] = useState(false);
+    
     const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText, uploadFile } = useChat();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +38,75 @@ export default function Home() {
     const [isHovered, setIsHovered] = useState(false);
     const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
     const isSidebarVisible = isSidebarLocked || isHovered;
+
+    // Client-side mount kontrolü ve auth token kontrolü
+    useEffect(() => {
+        setIsMounted(true);
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('auth_token');
+            const guestMode = localStorage.getItem('guest_mode') === 'true';
+            setAuthToken(token);
+            // Misafir modu: guest_mode true VE token yok
+            const isGuest = guestMode && !token;
+            setIsGuestMode(isGuest);
+            
+            // Debug log
+            console.log('🔍 Auth kontrol:', { 
+                token: token ? 'var' : 'yok', 
+                guestMode, 
+                isGuestMode: isGuest,
+                localStorage_guest_mode: localStorage.getItem('guest_mode'),
+                localStorage_auth_token: localStorage.getItem('auth_token')
+            });
+            
+            // Sayfa kapatıldığında misafir modunu temizle
+            const handleBeforeUnload = () => {
+                const isGuest = localStorage.getItem('guest_mode') === 'true';
+                if (isGuest) {
+                    localStorage.removeItem('guest_mode');
+                }
+            };
+            
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            
+            return () => {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+            };
+        }
+    }, []);
+
+    const handleLoginSuccess = (token: string) => {
+        localStorage.setItem('auth_token', token);
+        localStorage.removeItem('guest_mode');
+        setAuthToken(token);
+        setIsGuestMode(false);
+        // Sayfayı yenile ki useChat hook'u yeni token'ı alsın
+        window.location.reload();
+    };
+
+    const handleGuestMode = () => {
+        console.log('👤 Misafir modu aktifleştiriliyor...');
+        
+        // localStorage'a yaz
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('guest_mode', 'true');
+            localStorage.removeItem('auth_token');
+            
+            // State'i güncelle - sayfa yenileme yerine state güncellemesi
+            setAuthToken(null);
+            setIsGuestMode(true);
+            
+            console.log('✅ localStorage ve state güncellendi:', { 
+                guest_mode: localStorage.getItem('guest_mode'), 
+                auth_token: localStorage.getItem('auth_token'),
+                isGuestMode_state: true,
+                authToken_state: null
+            });
+            
+            // Custom event dispatch et ki useChat hook'u dinlesin
+            window.dispatchEvent(new Event('guestModeActivated'));
+        }
+    };
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -247,6 +321,41 @@ export default function Home() {
             </form>
         );
     };
+
+    // Login olmamışsa login formunu göster (hydration hatasını önlemek için mounted kontrolü)
+    if (!isMounted) {
+        // Server-side render için loading state
+        return (
+            <div className="flex h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 items-center justify-center">
+                <div className="text-white">Yükleniyor...</div>
+            </div>
+        );
+    }
+
+    // localStorage'dan direkt kontrol et (state güncellenmemiş olabilir)
+    const currentGuestMode = typeof window !== 'undefined' ? (localStorage.getItem('guest_mode') === 'true' && !localStorage.getItem('auth_token')) : false;
+    const currentAuthToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
+    console.log('🎯 Render kontrol:', { 
+        currentAuthToken: currentAuthToken ? 'var' : 'yok',
+        currentGuestMode,
+        localStorage_guest_mode: typeof window !== 'undefined' ? localStorage.getItem('guest_mode') : 'N/A',
+        localStorage_auth_token: typeof window !== 'undefined' ? localStorage.getItem('auth_token') : 'N/A',
+        isMounted,
+        authToken: authToken ? 'var' : 'yok',
+        isGuestMode
+    });
+    
+    if (!currentAuthToken && !currentGuestMode) {
+        console.log('🚫 Login formu gösteriliyor');
+        return (
+            <div className="flex h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 items-center justify-center">
+                <LoginForm onLoginSuccess={handleLoginSuccess} onGuestMode={handleGuestMode} />
+            </div>
+        );
+    }
+    
+    console.log('✅ Chat arayüzü gösteriliyor');
 
     return (
         <div className="flex h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950">

@@ -26,12 +26,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onN
     const [history, setHistory] = useState(initialMockHistory);
 
     const handleDelete = (idToDelete: number) => {
-        if (window.confirm("Bu sohbeti silmek istediğinizden emin misiniz?")) {
+        if (typeof window !== 'undefined' && window.confirm("Bu sohbeti silmek istediğinizden emin misiniz?")) {
             setHistory(prevHistory => prevHistory.filter(item => item.id !== idToDelete));
         }
     };
 
     const handleRename = (idToRename: number) => {
+        if (typeof window === 'undefined') return;
         const currentItem = history.find(item => item.id === idToRename);
         const newTitle = window.prompt("Yeni sohbet başlığını girin:", currentItem?.title);
         if (newTitle && newTitle.trim() !== "") {
