@@ -1,12 +1,9 @@
-// components/sidebar/sidebar.tsx
 'use client';
 
 import React, { useState } from 'react';
-// DEĞİŞİKLİK: Dosya yolları küçük harf ve camelCase olarak güncellendi
 import NewChatButton from './chatButton';
 import HistoryItem from './historyItem';
 import MenuButton from './menuButton';
-import CustomToolButton from './customToolButton';
 
 interface SidebarProps {
     isVisible: boolean;
@@ -15,15 +12,8 @@ interface SidebarProps {
     onNewChat: () => void;
 }
 
-const initialMockHistory = [
-    { id: 1, title: 'Kumaş Kalite Raporu', active: false },
-    { id: 2, title: 'Son 3 Ayın Pamuk Fiyatları', active: true },
-    { id: 3, title: 'Yeni Boya Formül Önerisi', active: false },
-    { id: 4, title: 'Tedarikçi Sözleşme Detayları', active: false },
-];
-
 const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onNewChat }) => {
-    const [history, setHistory] = useState(initialMockHistory);
+    const [history, setHistory] = useState<Array<{ id: number; title: string; active: boolean }>>([]);
 
     const handleDelete = (idToDelete: number) => {
         if (typeof window !== 'undefined' && window.confirm("Bu sohbeti silmek istediğinizden emin misiniz?")) {
@@ -51,7 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onN
                 <div className="flex flex-col space-y-2 items-start">
                     <MenuButton isVisible={isVisible} isLocked={isLocked} onClick={onMenuClick} />
                     <NewChatButton isVisible={isVisible} onClick={onNewChat} />
-                    <CustomToolButton isVisible={isVisible} />
                 </div>
 
                 <div className={`flex-grow mt-6 flex flex-col overflow-hidden transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
