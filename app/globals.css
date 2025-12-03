@@ -26,8 +26,8 @@ body {
 /* 1. TÜM ELEMENTLERİ HEDEFLEYEN GENİŞLİK */
 /* !important kullanarak genişliği uygulamaya zorluyoruz. */
 ::-webkit-scrollbar {
-    width: 25px !important;
-    height: 25px !important;
+    width: 8px !important;
+    height: 8px !important;
     background: transparent !important;
 }
 
@@ -38,21 +38,54 @@ body {
 
 /* 3. Çubuğun kendisi (Thumb) */
 ::-webkit-scrollbar-thumb {
-    background-color: #4b5563 !important;
+    background-color: rgba(75, 85, 99, 0.5) !important;
     border-radius: 10px !important;
-    border: 5px solid transparent !important;
+    border: 2px solid transparent !important;
 }
 
 /* 4. Çubuk üzerine gelindiğinde renk değişimi */
 ::-webkit-scrollbar-thumb:hover {
-    background-color: #6b7280 !important;
+    background-color: rgba(107, 114, 128, 0.8) !important;
 }
 
 /* 5. FIREFOX İÇİN UYUMLULUK */
 * {
-    /* Bu kuralların !important alması gerekmez, ancak renkleri belirtiriz. */
     scrollbar-width: thin;
-    scrollbar-color: #4b5563 transparent;
+    scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+/* ------------------------------------------- */
+/* ANİMASYONLAR */
+/* ------------------------------------------- */
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+    animation: slide-up 0.6s ease-out;
 }
 
 /* ------------------------------------------- */
