@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 // TypeScript'in prop'ları doğru tanıması için yardımcı tipler
 type HTMLProps<T> = React.HTMLAttributes<T>;
@@ -23,8 +24,9 @@ const MarkdownRenderer: React.FC<RendererProps> = ({ content, className }) => {
                 // Ana div'e taşıdığımız için, ReactMarkdown'a doğrudan className vermiyoruz
                 // Bu, TS2322 hatasını çözer.
                 remarkPlugins={[remarkGfm]}
+                // HTML tag'lerinin (table, div, img vb.) gerçek HTML olarak işlenmesi için
+                rehypePlugins={[rehypeRaw]}
                 components={{
-
                     // Paragraf etiketi (p)
                     p: (props: HTMLProps<HTMLParagraphElement>) => (
                         <p className="mb-4 text-gray-300" {...props} />
@@ -49,10 +51,10 @@ const MarkdownRenderer: React.FC<RendererProps> = ({ content, className }) => {
                                     {match ? match[1].toUpperCase() : 'TEXT'}
                                 </div>
                                 <pre className="p-4 overflow-x-auto text-sm">
-                    <code className={`text-white ${className}`} {...rest}>
-                      {children}
-                    </code>
-                  </pre>
+                                    <code className={`text-white ${className}`} {...rest}>
+                                        {children}
+                                    </code>
+                                </pre>
                             </div>
                         );
                     },
@@ -77,6 +79,50 @@ const MarkdownRenderer: React.FC<RendererProps> = ({ content, className }) => {
                     ),
                     strong: (props: HTMLProps<HTMLElement>) => (
                         <strong className="font-semibold text-white" {...props} />
+                    ),
+
+                    // Genspark-style tablo ve görseller
+                    table: (props: HTMLProps<HTMLTableElement>) => (
+                        <div className="w-full overflow-x-auto my-4">
+                            <table
+                                className="w-full border-collapse border border-gray-700/60 text-sm text-left"
+                                {...props}
+                            />
+                        </div>
+                    ),
+                    th: (props: HTMLProps<HTMLTableCellElement>) => (
+                        <th
+                            className="bg-gray-800/80 font-semibold px-3 py-2 border border-gray-700/70 text-gray-100"
+                            {...props}
+                        />
+                    ),
+                    td: (props: HTMLProps<HTMLTableCellElement>) => (
+                        <td
+                            className="px-3 py-2 border border-gray-700/60 text-gray-200 align-top"
+                            {...props}
+                        />
+                    ),
+                    img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
+                        <img
+                            className={`max-w-full h-auto rounded-lg shadow-md my-3 ${props.className || ''}`}
+                            loading={props.loading ?? 'lazy'}
+                            {...props}
+                        />
+                    ),
+                    a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+                        <a
+                            className={`text-blue-400 underline hover:text-blue-300 transition-colors ${props.className || ''}`}
+                            target={props.target ?? '_blank'}
+                            rel={props.rel ?? 'noopener noreferrer'}
+                            {...props}
+                        />
+                    ),
+                    div: (props: HTMLProps<HTMLDivElement>) => (
+                        <div
+                            // Flex container'lar (örn. image grid) için varsayılan uyumlu boşluklandırma
+                            className={`my-2 ${props.className || ''}`}
+                            {...props}
+                        />
                     ),
                 }}
             >
