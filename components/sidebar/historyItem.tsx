@@ -2,12 +2,13 @@
 import React from 'react';
 
 interface HistoryItemProps {
-    id: number; // Silme ve yeniden adlandırma için ID gerekli
+    id: number | string; // Silme ve yeniden adlandırma için ID gerekli
     title: string;
     isActive?: boolean;
     // Tıklandığında ana bileşene haber verecek fonksiyonlar
-    onDelete: (id: number) => void;
-    onRename: (id: number) => void;
+    onDelete: (id: number | string) => void;
+    onRename: (id: number | string) => void;
+    onClick?: (id: number | string) => void;
 }
 
 // Yeniden Adlandırma (Kalem) ikonu için bir bileşen
@@ -24,17 +25,17 @@ const DeleteIcon = () => (
     </svg>
 );
 
-const HistoryItem: React.FC<HistoryItemProps> = ({ id, title, isActive = false, onDelete, onRename }) => {
+const HistoryItem: React.FC<HistoryItemProps> = ({ id, title, isActive = false, onDelete, onRename, onClick }) => {
     const displayTitle = title.length > 25 ? title.substring(0, 25) + '...' : title;
 
     const baseClasses = 'flex items-center justify-between p-2 text-sm rounded-lg transition duration-150 group';
     const activeClasses = isActive ? 'bg-gray-700 text-white font-medium' : 'text-gray-300 hover:bg-gray-800';
 
     return (
-        <li className={`${baseClasses} ${activeClasses}`}>
-            <a href="#" className="flex-grow truncate" title={title}>
+        <li className={`${baseClasses} ${activeClasses}`} onClick={() => onClick?.(id)}>
+            <button type="button" className="flex-grow text-left truncate" title={title}>
                 {displayTitle}
-            </a>
+            </button>
             {/* Bu ikonlar sadece parent 'group' üzerine gelindiğinde görünür olacak */}
             <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => onRename(id)} title="Yeniden Adlandır">

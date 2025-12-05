@@ -11,7 +11,7 @@ export default function Home() {
     const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
     const [isMounted, setIsMounted] = useState(false);
     
-    const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText } = useChat();
+    const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText, isGuest, currentConversationId, guestAlias, conversations, loadConversation } = useChat();
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -177,6 +177,9 @@ export default function Home() {
                     isLocked={isSidebarLocked}
                     onMenuClick={handleMenuClick}
                     onNewChat={startNewChat}
+                    history={conversations}
+                    activeId={currentConversationId}
+                    onSelect={(id, isGuestConversation) => loadConversation(id, !!isGuestConversation)}
                 />
             </div>
 

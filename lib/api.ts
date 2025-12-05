@@ -20,6 +20,8 @@ export interface LoginResponse {
 export interface ConversationDto {
     id: number;
     title?: string;
+    alias?: string;
+    history_json?: any[];
     created_at: string;
 }
 
@@ -86,11 +88,11 @@ export const api = {
             token,
         }),
 
-    createConversation: (token: string, title?: string) =>
+    createConversation: (token: string, title?: string, alias?: string) =>
         request<ConversationDto>('/conversations', {
             method: 'POST',
             token,
-            body: JSON.stringify({ title }),
+            body: JSON.stringify({ title, alias }),
         }),
 
     getMessages: (token: string, conversationId: number) =>
