@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import NewChatButton from './chatButton';
 import HistoryItem from './historyItem';
 import MenuButton from './menuButton';
@@ -10,29 +10,16 @@ interface SidebarProps {
     isLocked: boolean;
     onMenuClick: () => void;
     onNewChat: () => void;
+    history: Array<{ id: number | string; title: string; isGuest?: boolean }>;
+    activeId: number | string | null;
+    onSelect: (id: number | string, isGuest?: boolean) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onNewChat }) => {
-    const [history, setHistory] = useState<Array<{ id: number; title: string; active: boolean }>>([]);
+const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onNewChat, history, activeId, onSelect }) => {
 
-    const handleDelete = (idToDelete: number) => {
-        if (typeof window !== 'undefined' && window.confirm("Bu sohbeti silmek istediğinizden emin misiniz?")) {
-            setHistory(prevHistory => prevHistory.filter(item => item.id !== idToDelete));
-        }
-    };
-
-    const handleRename = (idToRename: number) => {
-        if (typeof window === 'undefined') return;
-        const currentItem = history.find(item => item.id === idToRename);
-        const newTitle = window.prompt("Yeni sohbet başlığını girin:", currentItem?.title);
-        if (newTitle && newTitle.trim() !== "") {
-            setHistory(prevHistory =>
-                prevHistory.map(item =>
-                    item.id === idToRename ? { ...item, title: newTitle.trim() } : item
-                )
-            );
-        }
-    };
+    // Şimdilik delete/rename UI'da tutuluyor ama state kontrollü olmadığı için sadece onSelect kullanılıyor
+    const handleDelete = () => {};
+    const handleRename = () => {};
 
     return (
         <div className="w-64 h-full relative">
@@ -52,7 +39,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isVisible, isLocked, onMenuClick, onN
                             {history.map(item => (
                                 <HistoryItem
                                     key={item.id} id={item.id} title={item.title}
-                                    isActive={item.active} onDelete={handleDelete} onRename={handleRename}
+                                    isActive={item.id === activeId} onDelete={handleDelete} onRename={handleRename}
+                                    onClick={() => onSelect(item.id, item.isGuest)}
                                 />
                             ))}
                         </ul>

@@ -14,8 +14,10 @@ export const useChat = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [inputText, setInputText] = useState('');
     const [currentConversationId, setCurrentConversationId] = useState<number | string | null>(null);
+    const [guestAlias, setGuestAlias] = useState<string>('Misafir Sohbeti');
     const [authToken, setAuthToken] = useState<string | null>(null);
     const [isGuest, setIsGuest] = useState(false);
+    const [conversations, setConversations] = useState<Array<{ id: number | string; title: string; isGuest: boolean }>>([]);
     const socketRef = useRef<Socket | null>(null);
 
     // Auth token'ı localStorage'dan al ve misafir modunu kontrol et
@@ -27,7 +29,16 @@ export const useChat = () => {
                 const isGuestMode = guestMode && !token;
                 setAuthToken(token);
                 setIsGuest(isGuestMode); // Misafir modu: guest_mode true ve token yok
-                
+                if (!isGuestMode && token) {
+                    // Giriş yapıldıysa sohbet listesini yenile
+                    api.listConversations(token).then(list => {
+                        setConversations(list.map(c => ({
+                            id: c.id,
+                            title: c.alias || c.title || `Sohbet ${c.id}`,
+                            isGuest: false,
+                        })));
+                    }).catch(() => {});
+                }
             }
         };
         
@@ -146,6 +157,7 @@ export const useChat = () => {
             image_url?: string;
             image_urls?: string[];
             created_at: string;
+            alias?: string;
         }) => {
 
             // Misafir modunda conversation ID'yi set et
@@ -153,6 +165,17 @@ export const useChat = () => {
             if (currentGuestMode && !currentConversationId) {
                 setCurrentConversationId(data.conversation_id);
                 setIsGuest(true); // State'i güncelle
+            }
+            // Misafir alias'ı backend'den güncelle
+            if (currentGuestMode && data.alias) {
+                setGuestAlias(data.alias);
+                setConversations(prev => {
+                    const exists = prev.find(p => p.id === data.conversation_id);
+                    if (exists) {
+                        return prev.map(p => p.id === data.conversation_id ? { ...p, title: data.alias || p.title } : p);
+                    }
+                    return [...prev, { id: data.conversation_id, title: data.alias, isGuest: true }];
+                });
             }
 
             const aiMessage: ChatMessage = {
@@ -165,6 +188,46 @@ export const useChat = () => {
             };
 
             setMessages(prev => [...prev, aiMessage]);
+            setIsLoading(false);
+        });
+
+        // Misafir: mevcut sohbet listesini al
+        socket.on('guest_conversation_list', (data: { conversations: Array<{ id: string; alias: string }> }) => {
+            setConversations(data.conversations.map(c => ({
+                id: c.id,
+                title: c.alias || 'Misafir Sohbeti',
+                isGuest: true,
+            })));
+            if (data.conversations.length > 0) {
+                setCurrentConversationId(prev => prev ?? data.conversations[0].id);
+                setGuestAlias(data.conversations[0].alias || 'Misafir Sohbeti');
+            }
+        });
+
+        // Misafir: yeni sohbet oluşturuldu
+        socket.on('guest_conversation_created', (data: { id: string; alias: string }) => {
+            setConversations(prev => [
+                ...prev.filter(c => !(c.isGuest && c.id === data.id)),
+                { id: data.id, title: data.alias || 'Misafir Sohbeti', isGuest: true },
+            ]);
+            setCurrentConversationId(data.id);
+            setGuestAlias(data.alias || 'Misafir Sohbeti');
+            setMessages([]);
+        });
+
+        // Misafir: seçili sohbetin geçmişi
+        socket.on('guest_conversation_data', (data: { conversation_id: string; alias?: string; messages: any[] }) => {
+            setCurrentConversationId(data.conversation_id);
+            if (data.alias) setGuestAlias(data.alias);
+            const restored = (data.messages || []).map((m) => ({
+                id: m.id,
+                sender: m.sender,
+                content: m.content || '',
+                imageUrl: m.image_url || undefined,
+                imageUrls: m.image_urls || (m.image_url ? [m.image_url] : undefined),
+                timestamp: new Date(m.created_at).getTime(),
+            })) as ChatMessage[];
+            setMessages(restored);
             setIsLoading(false);
         });
 
@@ -196,13 +259,37 @@ export const useChat = () => {
         };
     }, [isGuest, authToken]); // isGuest ve authToken değiştiğinde yeniden bağlan
 
+    // Auth değiştiğinde kullanıcı sohbet listesini yenile
+    useEffect(() => {
+        const fetchConversations = async () => {
+            if (authToken) {
+                try {
+                    const list = await api.listConversations(authToken);
+                    setConversations(list.map(c => ({
+                        id: c.id,
+                        title: c.alias || c.title || `Sohbet ${c.id}`,
+                        isGuest: false,
+                    })));
+                } catch (e) {
+                    console.error('Sohbet listesi alınamadı', e);
+                }
+            } else {
+                setConversations([]);
+            }
+        };
+        fetchConversations();
+    }, [authToken]);
+
     // Yeni konuşma başlat
     const startNewChat = useCallback(async () => {
         const currentGuestMode = typeof window !== 'undefined' ? (localStorage.getItem('guest_mode') === 'true' && !localStorage.getItem('auth_token')) : false;
         if (currentGuestMode) {
-            // Misafir modunda conversation ID backend'de otomatik oluşturulacak
+            if (socketRef.current) {
+                socketRef.current.emit('guest_new_conversation');
+            }
             setMessages([]);
             setCurrentConversationId(null); // Socket bağlantısından gelecek
+            setGuestAlias('Misafir Sohbeti');
             setIsGuest(true); // State'i güncelle
             return;
         }
@@ -216,6 +303,7 @@ export const useChat = () => {
             const conversation = await api.createConversation(authToken, 'Yeni Konuşma');
             setCurrentConversationId(conversation.id);
             setMessages([]);
+            setConversations(prev => [...prev, { id: conversation.id, title: conversation.alias || conversation.title || 'Yeni Konuşma', isGuest: false }]);
         } catch (error) {
             console.error('Konuşma oluşturma hatası:', error);
         }
@@ -266,6 +354,13 @@ export const useChat = () => {
         setInputText('');
         setIsLoading(true);
 
+        // Misafir alias'ını ilk kullanıcı mesajından üret
+        if (currentGuestMode && (!guestAlias || guestAlias === 'Misafir Sohbeti') && text) {
+            let autoAlias = text.trim();
+            if (autoAlias.length > 40) autoAlias = `${autoAlias.slice(0, 40)}...`;
+            setGuestAlias(autoAlias || 'Misafir Sohbeti');
+        }
+
         try {
             // Kayıtlı kullanıcılar için REST API ile mesajı kaydet
             if (!currentGuestMode && authToken && currentConversationId) {
@@ -290,6 +385,37 @@ export const useChat = () => {
         }
     }, [authToken, currentConversationId, isLoading]);
 
+    // Seçilen sohbeti yükle
+    const loadConversation = useCallback(async (conversationId: number | string, isGuestConversation: boolean) => {
+        if (isGuestConversation) {
+            if (socketRef.current) {
+                setIsLoading(true);
+                socketRef.current.emit('guest_get_conversation', { conversation_id: conversationId });
+            }
+            return;
+        }
+
+        if (!authToken) return;
+        try {
+            setIsLoading(true);
+            const msgs = await api.getMessages(authToken, Number(conversationId));
+            const restored: ChatMessage[] = msgs.map(m => ({
+                id: m.id.toString(),
+                sender: m.sender,
+                content: m.content || '',
+                imageUrl: m.image_url || undefined,
+                imageUrls: m.image_url ? m.image_url.split(';').filter(Boolean) : undefined,
+                timestamp: new Date(m.created_at).getTime(),
+            }));
+            setMessages(restored);
+            setCurrentConversationId(conversationId);
+        } catch (e) {
+            console.error('Sohbet yüklenemedi', e);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [authToken]);
+
     return useMemo(() => ({
         messages,
         isLoading,
@@ -299,5 +425,10 @@ export const useChat = () => {
         inputText,
         setInputText,
         isGuest,
-    }), [messages, isLoading, sendMessage, startNewChat, inputText, isGuest]);
+        currentConversationId,
+        guestAlias,
+        conversations,
+        loadConversation,
+        setConversations,
+    }), [messages, isLoading, sendMessage, startNewChat, inputText, isGuest, conversations, loadConversation, guestAlias, currentConversationId]);
 };
