@@ -5,13 +5,17 @@ import Sidebar from '@/components/sidebar/sidebar';
 import MessageList from '@/components/chat/messageList';
 import { useChat } from '@/hooks/useChat';
 import LoginForm from '@/components/auth/loginForm';
+import type { ApiUser } from '@/lib/api';
+import { api } from '@/lib/api';
 
 export default function Home() {
     const [authToken, setAuthToken] = useState<string | null>(null);
     const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [userProfile, setUserProfile] = useState<ApiUser | null>(null);
+    const [avatarOverride, setAvatarOverride] = useState<string | null>(null);
     
-    const { messages, isLoading, sendMessage, startNewChat, isChatStarted, inputText, setInputText, isGuest, currentConversationId, guestAlias, conversations, loadConversation } = useChat();
+    const { messages, isLoading, sendMessage, startNewChat, deleteConversation, isChatStarted, inputText, setInputText, isGuest, currentConversationId, guestAlias, conversations, loadConversation } = useChat();
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -55,6 +59,44 @@ export default function Home() {
         // Sayfayı yenile ki useChat hook'u yeni token'ı alsın
         window.location.reload();
     };
+
+    const handleGoToLogin = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('guest_mode');
+            window.location.reload();
+        }
+    };
+
+    const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+        if (!authToken) throw new Error('Giriş yapılmamış');
+        await api.changePassword(authToken, currentPassword, newPassword);
+    };
+
+    // Avatar override'ı localStorage'dan çek
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('avatar_override_url');
+            if (stored) setAvatarOverride(stored);
+        }
+    }, []);
+
+    // Profil bilgisi çek
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!authToken) {
+                setUserProfile(null);
+                return;
+            }
+            try {
+                const me = await api.me(authToken);
+                setUserProfile(me);
+            } catch (e) {
+                console.error('Profil alınamadı', e);
+            }
+        };
+        fetchProfile();
+    }, [authToken]);
 
     const handleGuestMode = () => {
         // localStorage'a yaz
@@ -180,12 +222,42 @@ export default function Home() {
                     history={conversations}
                     activeId={currentConversationId}
                     onSelect={(id, isGuestConversation) => loadConversation(id, !!isGuestConversation)}
+                    userProfile={userProfile}
+                    onLogout={handleGoToLogin}
+                    onChangePassword={handleChangePassword}
+                    avatarOverride={avatarOverride || undefined}
+                    authToken={authToken}
+                    onConversationDeleted={(id) => {
+                        deleteConversation(id);
+                    }}
+                    onAvatarChange={(url) => {
+                        if (typeof window !== 'undefined') {
+                            if (url) {
+                                localStorage.setItem('avatar_override_url', url);
+                            } else {
+                                localStorage.removeItem('avatar_override_url');
+                            }
+                        }
+                        setAvatarOverride(url || null);
+                    }}
+                    isGuest={isGuestMode || isGuest}
+                    guestAlias={guestAlias}
                 />
             </div>
 
             <main className="flex flex-1 flex-col overflow-hidden relative">
                 {/* Arka plan gradient efekti */}
                 <div className="absolute inset-0 bg-gradient-to-b from-blue-900/5 via-transparent to-purple-900/5 pointer-events-none" />
+
+                {/* Giriş sayfasına dön butonu */}
+                <div className="absolute bottom-4 left-4 z-20">
+                    <button
+                        onClick={handleGoToLogin}
+                        className="px-4 py-2 text-sm font-medium text-white bg-gray-800/80 border border-gray-700 rounded-xl shadow-md hover:bg-gray-700 transition"
+                    >
+                        Giriş sayfasına dön
+                    </button>
+                </div>
                 
                 {!isChatStarted && (
                     <div className="flex flex-col items-center justify-center h-full text-center relative z-10 px-4">
@@ -202,6 +274,11 @@ export default function Home() {
                             <p className="text-sm text-gray-500">Sorularınızı sorun ve anında yanıt alın</p>
                         </div>
                         <div className="w-full max-w-3xl animate-slide-up">
+                            {currentGuestMode && (
+                                <div className="mb-4 text-sm text-amber-300 bg-amber-500/10 border border-amber-500/40 rounded-xl px-4 py-3">
+                                    Misafir modundasınız. Sohbet geçmişiniz kaydedilmeyecek; pencereyi kapattığınızda silinir.
+                                </div>
+                            )}
                             {renderForm()}
                         </div>
                     </div>
@@ -210,7 +287,13 @@ export default function Home() {
                 {isChatStarted && (
                     <>
                         <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 py-6 relative z-10">
-                            <MessageList messages={messages} isLoading={isLoading} />
+                            <MessageList
+                                messages={messages}
+                                isLoading={isLoading}
+                                userProfile={userProfile || undefined}
+                                avatarOverride={avatarOverride || undefined}
+                                isGuest={isGuestMode || isGuest}
+                            />
                         </div>
 
                         <div className="pt-4 pb-6 w-full max-w-4xl mx-auto px-4 relative z-10">

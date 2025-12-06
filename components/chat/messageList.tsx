@@ -7,9 +7,12 @@ import TypingIndicator from './typingIndicator'; // Yeni bileşeni import et
 interface MessageListProps {
     messages: ChatMessageType[];
     isLoading: boolean; // isLoading prop'unu ekle
+    userProfile?: { email?: string; full_name?: string | null; username?: string };
+    avatarOverride?: string;
+    isGuest?: boolean;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, userProfile, avatarOverride, isGuest }) => {
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -24,7 +27,13 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
     return (
         <div className="flex flex-col space-y-4 w-full pt-4 pb-4">
             {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
+                <ChatMessage
+                    key={message.id}
+                    message={message}
+                    userProfile={userProfile}
+                    avatarOverride={avatarOverride}
+                    isGuest={isGuest}
+                />
             ))}
 
             {/* YENİ: Yükleme durumunda "Yazıyor..." göstergesini render et */}
