@@ -309,6 +309,21 @@ export const useChat = () => {
         }
     }, [authToken]);
 
+    // Konuşma sil
+    const deleteConversation = useCallback(async (conversationId: number | string) => {
+        if (!authToken) return;
+        try {
+            await api.deleteConversation(authToken, Number(conversationId));
+            setConversations(prev => prev.filter(c => c.id !== conversationId));
+            if (currentConversationId === conversationId) {
+                setCurrentConversationId(null);
+                setMessages([]);
+            }
+        } catch (e) {
+            console.error('Konuşma silinemedi', e);
+        }
+    }, [authToken, currentConversationId]);
+
     // İlk konuşmayı otomatik oluştur
     useEffect(() => {
         const currentGuestMode = typeof window !== 'undefined' ? (localStorage.getItem('guest_mode') === 'true' && !localStorage.getItem('auth_token')) : false;
@@ -362,16 +377,6 @@ export const useChat = () => {
         }
 
         try {
-            // Kayıtlı kullanıcılar için REST API ile mesajı kaydet
-            if (!currentGuestMode && authToken && currentConversationId) {
-                await api.saveMessage(authToken, {
-                    conversation_id: currentConversationId as number,
-                    sender: 'user',
-                    content: text || undefined,
-                    image_url: imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
-                });
-            }
-
             // Socket.IO ile mesajı gönder (AI yanıtı için)
             // Misafir modunda conversation_id null olabilir, backend handle edecek
             socketRef.current.emit('user_message', {
@@ -421,6 +426,7 @@ export const useChat = () => {
         isLoading,
         sendMessage,
         startNewChat,
+        deleteConversation,
         isChatStarted: messages.length > 0,
         inputText,
         setInputText,
@@ -430,5 +436,5 @@ export const useChat = () => {
         conversations,
         loadConversation,
         setConversations,
-    }), [messages, isLoading, sendMessage, startNewChat, inputText, isGuest, conversations, loadConversation, guestAlias, currentConversationId]);
+    }), [messages, isLoading, sendMessage, startNewChat, deleteConversation, inputText, isGuest, conversations, loadConversation, guestAlias, currentConversationId]);
 };

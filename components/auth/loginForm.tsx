@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
 interface LoginFormProps {
@@ -16,6 +16,17 @@ export default function LoginForm({ onLoginSuccess, onGuestMode }: LoginFormProp
     const [isRegister, setIsRegister] = useState(false);
     const [email, setEmail] = useState('');
     const [fullName, setFullName] = useState('');
+    const [hasSession, setHasSession] = useState(false);
+
+    // Eğer daha önce giriş yapılmışsa formu göstermeyelim
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                setHasSession(true);
+            }
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,6 +58,35 @@ export default function LoginForm({ onLoginSuccess, onGuestMode }: LoginFormProp
             setIsLoading(false);
         }
     };
+
+    // Eğer mevcut bir oturum varsa formu gösterme, devam/çıkış seçenekleri
+    if (hasSession) {
+        return (
+            <div className="w-full max-w-md mx-auto p-6 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 shadow-xl">
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">Zaten giriş yapıldı</h2>
+                <div className="space-y-3">
+                    <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white font-medium hover:from-blue-500 hover:to-purple-500 transition"
+                    >
+                        Devam Et
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('guest_mode');
+                            setHasSession(false);
+                        }}
+                        className="w-full py-3 bg-gray-700/50 hover:bg-gray-700 rounded-lg text-white font-medium border border-gray-600 hover:border-gray-500 transition"
+                    >
+                        Çıkış Yap
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-md mx-auto p-6 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 shadow-xl">

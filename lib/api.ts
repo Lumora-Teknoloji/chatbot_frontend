@@ -83,6 +83,13 @@ export const api = {
             token,
         }),
 
+    changePassword: (token: string, current_password: string, new_password: string) =>
+        request<{ detail: string }>('/users/change-password', {
+            method: 'POST',
+            token,
+            body: JSON.stringify({ current_password, new_password }),
+        }),
+
     listConversations: (token: string) =>
         request<ConversationDto[]>('/conversations', {
             token,
@@ -93,6 +100,12 @@ export const api = {
             method: 'POST',
             token,
             body: JSON.stringify({ title, alias }),
+        }),
+
+    deleteConversation: (token: string, conversationId: number) =>
+        request<{ detail: string }>(`/conversations/${conversationId}`, {
+            method: 'DELETE',
+            token,
         }),
 
     getMessages: (token: string, conversationId: number) =>
