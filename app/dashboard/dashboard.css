@@ -1,0 +1,334 @@
+.dashboard-v2 {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #0d1117;
+    color: #e6edf3;
+    overflow: hidden;
+}
+
+.dashboard__header-v2 {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #161b22;
+}
+
+.dashboard__title-v2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.dashboard__subtitle-v2 {
+    color: #8b949e;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.dashboard__body-v2 {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ─── Left Panel (List) ────────────────────────────────── */
+.production-list-pane {
+    width: 350px;
+    border-right: 1px solid #30363d;
+    display: flex;
+    flex-direction: column;
+    background: #0d1117;
+}
+
+.production-list-pane__header {
+    padding: 1rem;
+    border-bottom: 1px solid #30363d;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.production-list-pane__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.production-list-items {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.production-item {
+    display: flex;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #21262d;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-items: center;
+    gap: 1rem;
+}
+
+.production-item:hover, .production-item--active {
+    background-color: #1f242c;
+}
+
+.production-item__image {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: #161b22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.production-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.production-item__name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+}
+
+.production-item__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #8b949e;
+}
+
+.production-item__trend {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 500;
+}
+
+/* ─── Right Panel (Details) ────────────────────────────── */
+.production-detail-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0d1117;
+    overflow-y: auto;
+}
+
+.detail-empty {
+    margin: auto;
+    text-align: center;
+    color: #8b949e;
+}
+
+.detail-empty h2 {
+    font-size: 1.5rem;
+    color: #c9d1d9;
+    margin-bottom: 0.5rem;
+}
+
+.detail-content {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.detail-header {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    align-items: stretch;
+}
+
+.detail-header__image-container {
+    width: 300px;
+    flex-shrink: 0;
+    background: #161b22;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-header__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.detail-header__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-header__brand {
+    color: #8b949e;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.detail-header__name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.detail-header__price {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 1.5rem;
+}
+
+.detail-header__actions {
+    margin-top: auto;
+    display: flex;
+    gap: 1rem;
+}
+
+/* ─── Detail Grids ─────────────────────────────────────── */
+.detail-section {
+    margin-bottom: 2.5rem;
+}
+
+.detail-section__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 0.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detail-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.detail-card__label {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 0.25rem;
+}
+
+.detail-card__value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #e6edf3;
+}
+
+.detail-card__value--highlight {
+    color: #58a6ff;
+    font-size: 1.25rem;
+}
+
+.detail-card__value--success {
+    color: #10b981;
+}
+
+.detail-card__value--danger {
+    color: #f85149;
+}
+
+/* ─── Modals ───────────────────────────────────────────── */
+.search-modal {
+    width: 600px;
+    max-width: 90vw;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.search-modal__body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.search-input-wrapper {
+    padding: 1rem;
+    border-bottom: 1px solid #30363d;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 1rem;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #58a6ff;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background: #0d1117;
+    border-color: #30363d;
+}
+
+.search-result-item__image {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.search-result-item__info {
+    flex: 1;
+}
+
+.search-result-item__name {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.search-result-item__price {
+    font-size: 0.85rem;
+    color: #8b949e;
+}
