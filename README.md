@@ -179,7 +179,7 @@ PORT=3001 npm run dev
 
 ## 📚 Teknolojiler
 
-- **Next.js 16** - React framework
+- **Next.js 15** - React framework
 - **React 19** - UI kütüphanesi
 - **TypeScript** - Tip güvenliği
 - **Tailwind CSS** - Stil framework'ü
