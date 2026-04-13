@@ -38,7 +38,7 @@ Projeyi bilgisayarınıza indirin veya klonlayın:
 ```bash
 # Git kullanıyorsanız:
 git clone <repository-url>
-cd bediralvesil
+cd chatbot-frontend
 
 # Veya ZIP olarak indirdiyseniz, klasörü açın
 ```
@@ -115,7 +115,7 @@ npm run lint
 ## 📁 Proje Yapısı
 
 ```
-bediralvesil/
+chatbot-frontend/
 ├── app/                    # Next.js App Router dosyaları
 │   ├── layout.tsx         # Ana layout
 │   ├── page.tsx           # Ana sayfa (chat arayüzü)
