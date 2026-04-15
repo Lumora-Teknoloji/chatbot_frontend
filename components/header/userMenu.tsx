@@ -86,7 +86,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
         const email = userProfile?.email?.trim().toLowerCase();
         if (!email) return { avatarUrl: defaultAvatar, fallbackAvatar: defaultAvatar };
         const hash = md5(email);
-        const gravUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
+        const gravUrl = `https://www.gravatar.com/avatar/${hash}?d=mp`;
         return { avatarUrl: gravUrl, fallbackAvatar: defaultAvatar };
     })();
 

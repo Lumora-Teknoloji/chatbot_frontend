@@ -87,7 +87,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, userProfile, avatarO
         const email = userProfile?.email?.trim().toLowerCase();
         if (!email) return { gravatarUrl: null, fallbackAvatarUrl: defaultAvatarUrl };
         const hash = md5(email);
-        const gravUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
+        const gravUrl = `https://www.gravatar.com/avatar/${hash}?d=mp`;
         return { gravatarUrl: gravUrl, fallbackAvatarUrl: defaultAvatarUrl };
     }, [userProfile, avatarOverride, isGuest]);
 
