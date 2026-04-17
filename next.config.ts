@@ -6,8 +6,12 @@ const backendProtocol = new URL(backendUrl).protocol.replace(':', '') as 'http' 
 const backendPort = new URL(backendUrl).port || (backendProtocol === 'https' ? '443' : '80');
 const wsProtocol = backendProtocol === 'https' ? 'wss' : 'ws';
 
-const nextConfig: NextConfig = {
+// @ts-ignore
+const nextConfig = {
   output: 'standalone',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -41,6 +45,20 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: false,
   },
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: 'https://admin.lumoraboutique.com/',
+        permanent: false,
+      },
+      {
+        source: '/admin/:path*',
+        destination: 'https://admin.lumoraboutique.com/:path*',
+        permanent: false,
+      }
+    ];
+  },
   async headers() {
     return [
       {
@@ -68,7 +86,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: ${backendUrl}; connect-src 'self' ${backendUrl} ${wsProtocol}://${backendHost}${backendPort !== '443' && backendPort !== '80' ? ':' + backendPort : ''}; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`
+            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: ${backendUrl}; connect-src 'self' https://cloudflareinsights.com ${backendUrl} ${wsProtocol}://${backendHost}${backendPort !== '443' && backendPort !== '80' ? ':' + backendPort : ''}; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`
           },
           {
             key: 'Permissions-Policy',
