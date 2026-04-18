@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LightboxProvider } from "@/components/ui/lightbox-provider";
 import { ThemeProvider } from "@/components/ThemeContext";
+import { AuthProvider } from "@/components/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,7 +36,9 @@ export default function RootLayout({
             <body className={`${inter.className} bg-brand-bg`} suppressHydrationWarning>
                 <ThemeProvider>
                     <LightboxProvider>
-                        {children}
+                        <AuthProvider>
+                            {children}
+                        </AuthProvider>
                     </LightboxProvider>
                 </ThemeProvider>
             </body>

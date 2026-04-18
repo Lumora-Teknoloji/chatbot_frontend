@@ -113,10 +113,10 @@ export const api = {
         }),
 
     listConversations: () =>
-        request<ConversationDto[]>('/conversations'),
+        request<ConversationDto[]>('/conversations/'),
 
     createConversation: (title?: string, alias?: string) =>
-        request<ConversationDto>('/conversations', {
+        request<ConversationDto>('/conversations/', {
             method: 'POST',
             body: JSON.stringify({ title, alias }),
         }),
@@ -132,7 +132,7 @@ export const api = {
     saveMessage: (
         payload: { conversation_id: number; sender: 'user' | 'ai'; content?: string; image_url?: string }
     ) =>
-        request<MessageDto>('/messages', {
+        request<MessageDto>('/messages/', {
             method: 'POST',
             body: JSON.stringify(payload),
         }),

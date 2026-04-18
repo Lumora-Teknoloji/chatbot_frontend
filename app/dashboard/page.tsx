@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/components/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useProductionList } from '@/hooks/useProductionList';
 import type { ProductOut, ProductionListItem } from '@/lib/api';

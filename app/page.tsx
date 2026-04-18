@@ -6,7 +6,7 @@ import MessageList from '@/components/chat/messageList';
 import UserMenu from '@/components/header/userMenu';
 import { Typewriter } from '@/components/ui/typewriter';
 import { useChat } from '@/hooks/useChat';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/components/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import LoginForm from '@/components/auth/loginForm';
 import TextSelectionPopup from '@/components/chat/textSelectionPopup';
@@ -22,7 +22,7 @@ export default function Home() {
 
     const [isMounted, setIsMounted] = useState(false);
 
-    const { messages, isLoading: isChatLoading, sendMessage, startNewChat, deleteConversation, isChatStarted, inputText, setInputText, isGuest, currentConversationId, guestAlias, conversations, loadConversation, stopGeneration, setConversations } = useChat(isAuthenticated, isGuestMode);
+    const { messages, isLoading: isChatLoading, sendMessage, startNewChat, deleteConversation, isChatStarted, inputText, setInputText, isGuest, currentConversationId, guestAlias, conversations, loadConversation, stopGeneration, setConversations } = useChat();
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 

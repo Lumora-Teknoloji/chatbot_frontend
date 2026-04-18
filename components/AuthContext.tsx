@@ -1,34 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '@/lib/api';
+import { clearGuestMode, enableGuestMode, hasGuestFallback } from '@/lib/guest';
 
-/**
- * Hook for managing authentication state
- * Handles login, logout, and guest mode
- */
-export function useAuth() {
+interface AuthContextType {
+    isAuthenticated: boolean;
+    isGuestMode: boolean;
+    isLoading: boolean;
+    handleLoginSuccess: () => void;
+    handleLogout: () => Promise<void>;
+    activateGuestMode: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Initialize authentication state on mount
     useEffect(() => {
-        console.log('[useAuth] 🔵 Initializing auth state');
+        console.log('[AuthContext] 🔵 Initializing auth state');
 
         const initAuth = async () => {
             try {
                 // Check if user is authenticated via cookie
                 await api.me();
-                console.log('[useAuth] ✅ User authenticated');
+                console.log('[AuthContext] ✅ User authenticated');
                 setIsAuthenticated(true);
                 setIsGuestMode(false);
             } catch (err) {
                 // Not authenticated - check guest mode
-                console.log('[useAuth] ❌ Not authenticated, checking guest mode');
+                console.log('[AuthContext] ❌ Not authenticated, checking guest mode');
                 if (typeof window !== 'undefined') {
-                    const guestMode = localStorage.getItem('guest_mode') === 'true';
-                    console.log('[useAuth] 🔍 Guest mode:', guestMode);
+                    const guestMode = hasGuestFallback();
+                    console.log('[AuthContext] 🔍 Guest mode:', guestMode);
                     setIsGuestMode(guestMode);
                     setIsAuthenticated(false);
                 }
@@ -42,9 +50,9 @@ export function useAuth() {
 
             // Clean up guest mode on page close
             const handleBeforeUnload = () => {
-                const isGuest = localStorage.getItem('guest_mode') === 'true';
+                const isGuest = hasGuestFallback();
                 if (isGuest) {
-                    localStorage.removeItem('guest_mode');
+                    clearGuestMode();
                 }
             };
 
@@ -55,21 +63,13 @@ export function useAuth() {
         }
     }, []);
 
-    /**
-     * Handle successful login
-     * Clears guest mode and reloads the page
-     */
     const handleLoginSuccess = () => {
-        localStorage.removeItem('guest_mode');
+        clearGuestMode();
         setIsAuthenticated(true);
         setIsGuestMode(false);
         window.location.reload();
     };
 
-    /**
-     * Handle logout
-     * Calls API logout and reloads the page
-     */
     const handleLogout = async () => {
         try {
             await api.logout();
@@ -77,30 +77,38 @@ export function useAuth() {
             console.error('Logout error:', e);
         }
         if (typeof window !== 'undefined') {
-            localStorage.removeItem('guest_mode');
+            clearGuestMode();
             window.location.reload();
         }
     };
 
-    /**
-     * Activate guest mode
-     * Sets guest mode in localStorage and updates state
-     */
     const activateGuestMode = () => {
         if (typeof window !== 'undefined') {
-            localStorage.setItem('guest_mode', 'true');
+            enableGuestMode();
             setIsAuthenticated(false);
             setIsGuestMode(true);
             window.dispatchEvent(new Event('guestModeActivated'));
         }
     };
 
-    return {
-        isAuthenticated,
-        isGuestMode,
-        isLoading,
-        handleLoginSuccess,
-        handleLogout,
-        activateGuestMode,
-    };
+    return (
+        <AuthContext.Provider value={{
+            isAuthenticated,
+            isGuestMode,
+            isLoading,
+            handleLoginSuccess,
+            handleLogout,
+            activateGuestMode,
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 }
