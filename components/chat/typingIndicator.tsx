@@ -6,13 +6,13 @@ const TypingIndicator: React.FC = () => {
     return (
         <div className="flex w-full mb-6 justify-start animate-fade-in">
             {/* AI Avatar */}
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-lg ring-2 ring-[var(--color-gold)]/30">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-lg ring-2 ring-[var(--color-gold)]/30 flex items-center justify-center bg-black/40">
                 <Image
-                    src="/avatar.png"
-                    alt="AI"
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-cover"
+                    src="/lumora_logo.png"
+                    alt="Lumora AI"
+                    width={36}
+                    height={36}
+                    className="w-[90%] h-[90%] object-contain"
                 />
             </div>
 
