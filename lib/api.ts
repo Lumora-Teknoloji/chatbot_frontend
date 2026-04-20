@@ -223,6 +223,41 @@ export const api = {
         request<{}>(`/products/production-list/${list_id}`, {
             method: 'DELETE',
         }),
+
+    // ─── Collections & Reactions ──────────────────────────────────
+
+    listCollections: () =>
+        request<CollectionOut[]>('/collections'),
+
+    createCollection: (data: { name: string; color?: string; icon?: string }) =>
+        request<CollectionOut>('/collections', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    deleteCollection: (id: number) =>
+        request<{}>(`/collections/${id}`, { method: 'DELETE' }),
+
+    listCollectionProducts: (collectionId: number) =>
+        request<ProductOut[]>(`/collections/${collectionId}/products`),
+
+    addProductToCollection: (collectionId: number, productId: number) =>
+        request<{ status: string }>(`/collections/${collectionId}/products`, {
+            method: 'POST',
+            body: JSON.stringify({ product_id: productId }),
+        }),
+
+    removeProductFromCollection: (collectionId: number, productId: number) =>
+        request<{}>(`/collections/${collectionId}/products/${productId}`, { method: 'DELETE' }),
+
+    toggleReaction: (productId: number, reaction: string) =>
+        request<{ status: string; reaction: string | null }>('/collections/reactions', {
+            method: 'POST',
+            body: JSON.stringify({ product_id: productId, reaction }),
+        }),
+
+    getAllReactions: () =>
+        request<Record<number, string>>('/collections/reactions/all'),
 };
 
 // ─── Dashboard Types ─────────────────────────────────────────────
@@ -360,3 +395,12 @@ export interface ProductionListItem {
     trend_direction?: string | null;
     trend_score?: number | null;
 }
+
+export interface CollectionOut {
+    id: number;
+    name: string;
+    color: string;
+    icon: string;
+    product_count: number;
+}
+
