@@ -5,6 +5,7 @@ import { useAuth } from '@/components/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useProductionList } from '@/hooks/useProductionList';
 import type { ProductOut, ProductionListItem } from '@/lib/api';
+import AppSwitcher from '@/components/ui/AppSwitcher';
 
 import './dashboard.css';
 
@@ -184,10 +185,15 @@ export default function DashboardPage() {
     return (
         <div className="dashboard-v2">
             {/* Header */}
-            <div className="dashboard__header-v2">
+            <div className="dashboard__header-v2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                     <h1 className="dashboard__title-v2">🏭 Üretim Karar Paneli</h1>
                     <p className="dashboard__subtitle-v2">Merhaba {userProfile?.full_name || userProfile?.username || ''}, üreteceğin ürünlerin kapsamlı analizini yap</p>
+                </div>
+
+                {/* Switcher & Navs */}
+                <div style={{ zIndex: 20 }}>
+                    <AppSwitcher />
                 </div>
             </div>
 

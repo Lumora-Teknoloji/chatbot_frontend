@@ -10,6 +10,7 @@ import { useAuth } from '@/components/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import LoginForm from '@/components/auth/loginForm';
 import TextSelectionPopup from '@/components/chat/textSelectionPopup';
+import AppSwitcher from '@/components/ui/AppSwitcher';
 import type { ApiUser } from '@/lib/api';
 import { api } from '@/lib/api';
 
@@ -437,7 +438,8 @@ export default function Home() {
 
                 {/* Header (Sağ Üst) */}
                 <header className="absolute top-0 right-0 z-20 p-4 flex justify-end items-center w-full pointer-events-none">
-                    <div className="pointer-events-auto">
+                    <div className="pointer-events-auto flex items-center gap-4">
+                        <AppSwitcher />
                         <UserMenu
                             userProfile={userProfile || undefined}
                             isGuest={isGuestMode || isGuest}
