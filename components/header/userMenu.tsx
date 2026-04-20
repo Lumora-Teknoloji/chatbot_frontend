@@ -100,23 +100,29 @@ const UserMenu: React.FC<UserMenuProps> = ({
                 alt="Profil"
             />
             {isProfileOpen && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-brand-emerald/95 border border-brand-emerald rounded-xl shadow-2xl p-4 z-50 space-y-3 backdrop-blur-xl">
-                    <div className="text-sm font-semibold text-brand-text mb-1">
-                        {isGuest ? 'Misafir Sohbeti' : (userProfile?.full_name || userProfile?.username || 'Kullanıcı')}
-                    </div>
-                    <div className="text-xs text-brand-text/70 mb-3 truncate">
-                        {isGuest ? 'Misafir modunda' : (userProfile?.email || '')}
-                    </div>
+                <>
+                    {/* Backdrop overlay */}
+                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-gray-900/95 border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-0 z-50 backdrop-blur-2xl overflow-hidden">
+                        {/* Header */}
+                        <div className="px-5 pt-5 pb-3">
+                            <div className="text-sm font-semibold text-white">
+                                {isGuest ? 'Misafir Sohbeti' : (userProfile?.full_name || userProfile?.username || 'Kullanıcı')}
+                            </div>
+                            <div className="text-xs text-white/40 mt-0.5 truncate">
+                                {isGuest ? 'Misafir modunda' : (userProfile?.email || '')}
+                            </div>
+                        </div>
 
-                    {!showChangePassword && (
-                        <div className="space-y-3">
-                            {!isGuest && (
-                                <div className="space-y-2">
-                                    <label className="text-xs text-brand-text/70">Profil Fotoğrafı</label>
-                                    <div className="flex flex-col gap-2">
+                        <div className="h-px bg-white/5 mx-4" />
+
+                        {!showChangePassword && (
+                            <div className="px-2 py-2">
+                                {!isGuest && (
+                                    <>
                                         <label className={`
-                                            flex items-center justify-center w-full p-3 border border-dashed border-brand-emerald/50 rounded-lg 
-                                            cursor-pointer hover:bg-brand-emerald/10 transition-colors
+                                            flex items-center gap-3 w-full px-3 py-2.5 rounded-lg 
+                                            cursor-pointer hover:bg-white/5 transition-colors text-white/60 hover:text-white/90
                                             ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
                                         `}>
                                             <input
@@ -127,146 +133,165 @@ const UserMenu: React.FC<UserMenuProps> = ({
                                                 disabled={isUploading}
                                             />
                                             {isUploading ? (
-                                                <div className="flex items-center gap-2 text-xs text-brand-text/70">
-                                                    <div className="w-3 h-3 border-2 border-brand-text/30 border-t-brand-text rounded-full animate-spin" />
-                                                    Yükleniyor...
-                                                </div>
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/20 border-t-sky-400 rounded-full animate-spin" />
+                                                    <span className="text-xs">Yükleniyor...</span>
+                                                </>
                                             ) : (
-                                                <div className="flex items-center gap-2 text-xs text-brand-text/70">
+                                                <>
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
                                                     </svg>
-                                                    Bilgisayardan Seç
-                                                </div>
+                                                    <span className="text-xs">Profil Fotoğrafı Değiştir</span>
+                                                </>
                                             )}
                                         </label>
 
-                                        <div className="flex items-center justify-between">
-                                            <button
-                                                onClick={() => onAvatarChange?.(null)}
-                                                className="text-xs text-brand-text/50 hover:text-brand-text transition-colors"
-                                                disabled={isUploading}
-                                            >
-                                                Varsayılanı kullan
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 gap-2 text-xs">
-                                {!isGuest && (
-                                    <button
-                                        onClick={() => setShowChangePassword(true)}
-                                        className="w-full px-3 py-2 bg-brand-emerald/50 hover:bg-brand-emerald rounded-lg text-brand-text text-left border border-brand-emerald"
-                                    >
-                                        Şifre Değiştir
-                                    </button>
+                                        <button
+                                            onClick={() => setShowChangePassword(true)}
+                                            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/60 hover:text-white/90 hover:bg-white/5 transition-colors"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                            </svg>
+                                            <span className="text-xs">Şifre Değiştir</span>
+                                        </button>
+                                    </>
                                 )}
-                                <div className="pt-2 pb-1 border-t border-brand-emerald/50">
-                                    <div className="text-[10px] text-brand-text/50 uppercase tracking-wider mb-2 px-1">Tema</div>
-                                    <div className="grid grid-cols-2 gap-2">
+
+                                {/* Theme toggle */}
+                                <div className="px-3 pt-2 pb-1">
+                                    <div className="text-[10px] text-white/30 uppercase tracking-widest mb-2">Tema</div>
+                                    <div className="grid grid-cols-2 gap-1.5">
                                         <button
                                             onClick={() => theme !== 'light' && toggleTheme()}
                                             className={`
-                                                flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all
+                                                flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-medium transition-all
                                                 ${theme === 'light'
-                                                    ? 'bg-brand-text text-brand-bg shadow-sm ring-1 ring-brand-text/50'
-                                                    : 'bg-brand-emerald/30 text-brand-text/70 hover:bg-brand-emerald/50 hover:text-brand-text'
+                                                    ? 'bg-white/10 text-white ring-1 ring-white/20'
+                                                    : 'text-white/40 hover:bg-white/5 hover:text-white/60'
                                                 }
                                             `}
                                         >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                             </svg>
                                             Aydınlık
                                         </button>
                                         <button
                                             onClick={() => theme !== 'dark' && toggleTheme()}
                                             className={`
-                                                flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all
+                                                flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-medium transition-all
                                                 ${theme === 'dark'
-                                                    ? 'bg-brand-text text-brand-bg shadow-sm ring-1 ring-brand-text/50'
-                                                    : 'bg-brand-emerald/30 text-brand-text/70 hover:bg-brand-emerald/50 hover:text-brand-text'
+                                                    ? 'bg-white/10 text-white ring-1 ring-white/20'
+                                                    : 'text-white/40 hover:bg-white/5 hover:text-white/60'
                                                 }
                                             `}
                                         >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                                             </svg>
                                             Karanlık
                                         </button>
                                     </div>
                                 </div>
-                                {onLogout && (
-                                    <button
-                                        onClick={onLogout}
-                                        className="w-full px-3 py-2 bg-brand-emerald/50 hover:bg-brand-emerald rounded-lg text-brand-text text-left border border-brand-emerald"
-                                    >
-                                        Çıkış
-                                    </button>
-                                )}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {showChangePassword && (
-                        <div className="space-y-2">
-                            <input
-                                type="password"
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                placeholder="Mevcut şifre"
-                                className="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            <input
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Yeni şifre"
-                                className="w-full px-3 py-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            {pwdError && <div className="text-red-300 text-xs">{pwdError}</div>}
-                            {pwdMessage && <div className="text-green-300 text-xs">{pwdMessage}</div>}
-                            <div className="flex items-center justify-between pt-1">
-                                <button
-                                    onClick={() => {
-                                        setShowChangePassword(false);
-                                        setPwdError(null);
-                                        setPwdMessage(null);
-                                        setCurrentPassword('');
-                                        setNewPassword('');
-                                    }}
-                                    className="text-xs text-gray-400 hover:text-gray-300"
-                                >
-                                    Geri
-                                </button>
-                                <button
-                                    disabled={pwdLoading || !currentPassword || !newPassword}
-                                    onClick={async () => {
-                                        if (!onChangePassword) return;
-                                        setPwdError(null);
-                                        setPwdMessage(null);
-                                        setPwdLoading(true);
-                                        try {
-                                            await onChangePassword(currentPassword, newPassword);
-                                            setPwdMessage('Şifre güncellendi');
+                        {showChangePassword && (
+                            <div className="px-4 py-3 space-y-2">
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    placeholder="Mevcut şifre"
+                                    className="w-full px-3 py-2 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+                                />
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Yeni şifre"
+                                    className="w-full px-3 py-2 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+                                />
+                                {pwdError && <div className="text-red-400 text-xs">{pwdError}</div>}
+                                {pwdMessage && <div className="text-emerald-400 text-xs">{pwdMessage}</div>}
+                                <div className="flex items-center justify-between pt-1">
+                                    <button
+                                        onClick={() => {
+                                            setShowChangePassword(false);
+                                            setPwdError(null);
+                                            setPwdMessage(null);
                                             setCurrentPassword('');
                                             setNewPassword('');
-                                        } catch (err: any) {
-                                            setPwdError(err?.message || 'Şifre değiştirilemedi');
-                                        } finally {
-                                            setPwdLoading(false);
-                                        }
-                                    }}
-                                    className="text-xs text-blue-300 hover:text-blue-200 disabled:text-gray-500"
-                                >
-                                    {pwdLoading ? 'Kaydediliyor...' : 'Kaydet'}
-                                </button>
+                                        }}
+                                        className="text-xs text-white/40 hover:text-white/70 transition-colors"
+                                    >
+                                        ← Geri
+                                    </button>
+                                    <button
+                                        disabled={pwdLoading || !currentPassword || !newPassword}
+                                        onClick={async () => {
+                                            if (!onChangePassword) return;
+                                            setPwdError(null);
+                                            setPwdMessage(null);
+                                            setPwdLoading(true);
+                                            try {
+                                                await onChangePassword(currentPassword, newPassword);
+                                                setPwdMessage('Şifre güncellendi');
+                                                setCurrentPassword('');
+                                                setNewPassword('');
+                                            } catch (err: any) {
+                                                setPwdError(err?.message || 'Şifre değiştirilemedi');
+                                            } finally {
+                                                setPwdLoading(false);
+                                            }
+                                        }}
+                                        className="text-xs text-sky-400 hover:text-sky-300 disabled:text-white/20 transition-colors"
+                                    >
+                                        {pwdLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                                    </button>
+                                </div>
                             </div>
+                        )}
+
+                        {/* Navigation links (Sohbet / Üretim) */}
+                        <div className="h-px bg-white/5 mx-4" />
+                        <div className="px-2 py-2">
+                            <a href="/" className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/60 hover:text-sky-400 hover:bg-white/5 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                    <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-xs">Sohbet</span>
+                            </a>
+                            <a href="/dashboard" className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-white/60 hover:text-emerald-400 hover:bg-white/5 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                    <path fillRule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm2.25 0c0-.414.336-.75.75-.75h12c.414 0 .75.336.75.75v12c0 .414-.336.75-.75.75H6a.75.75 0 01-.75-.75V6zM8.25 8.25a.75.75 0 00-1.5 0v6.75a.75.75 0 001.5 0v-6.75zM12 5.25a.75.75 0 00-1.5 0v9.75a.75.75 0 001.5 0v-9.75zm3.75 5.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-xs">Üretim Paneli</span>
+                            </a>
                         </div>
-                    )}
-                </div>
+
+                        {/* Logout */}
+                        {onLogout && (
+                            <>
+                                <div className="h-px bg-white/5 mx-4" />
+                                <div className="px-2 py-2">
+                                    <button
+                                        onClick={onLogout}
+                                        className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/5 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                        </svg>
+                                        <span className="text-xs">Çıkış Yap</span>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </>
             )}
         </div>
     );

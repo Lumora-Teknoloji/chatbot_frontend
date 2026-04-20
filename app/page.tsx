@@ -13,6 +13,7 @@ import TextSelectionPopup from '@/components/chat/textSelectionPopup';
 import type { ApiUser } from '@/lib/api';
 import { api } from '@/lib/api';
 
+
 export default function Home() {
     // Authentication
     const { isAuthenticated, isGuestMode, isLoading: isAuthLoading, handleLoginSuccess, handleLogout, activateGuestMode } = useAuth();
@@ -534,39 +535,7 @@ export default function Home() {
                 </main>
             </div>
 
-            {/* macOS/Ubuntu Style Auto-hide Dock */}
-            {isAuthenticated && !isGuestMode && (
-                <div className="fixed bottom-0 left-0 w-full h-8 z-[100] flex justify-center group/dock hover:h-28 transition-all duration-300">
-                    <div className="absolute bottom-5 flex items-center gap-3 px-5 py-3.5 bg-[#1C1C1E]/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-black/5 transform translate-y-28 group-hover/dock:translate-y-0 opacity-0 group-hover/dock:opacity-100 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
 
-                        <a href="/" className="relative flex flex-col items-center group/item">
-                            <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl shadow-[0_10px_20px_rgba(59,130,246,0.3)] transition-all duration-300 group-hover/item:scale-110 group-hover/item:-translate-y-2 ring-1 ring-white/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                                    <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <span className="absolute -top-12 px-2.5 py-1.5 bg-black/90 text-white text-[11px] font-medium rounded-lg opacity-0 group-hover/item:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-white/10 pointer-events-none">
-                                Lumora Chat
-                            </span>
-                            <div className="absolute -bottom-2 w-1 h-1 bg-white/80 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
-                        </a>
-
-                        <div className="w-[1px] h-8 bg-white/10 mx-1"></div>
-
-                        <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer" className="relative flex flex-col items-center group/item">
-                            <div className="w-12 h-12 flex items-center justify-center bg-transparent text-gray-400 rounded-2xl transition-all duration-300 hover:bg-white/10 hover:text-emerald-400 group-hover/item:scale-110 group-hover/item:-translate-y-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                                    <path fillRule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm2.25 0c0-.414.336-.75.75-.75h12c.414 0 .75.336.75.75v12c0 .414-.336.75-.75.75H6a.75.75 0 01-.75-.75V6zM8.25 8.25a.75.75 0 00-1.5 0v6.75a.75.75 0 001.5 0v-6.75zM12 5.25a.75.75 0 00-1.5 0v9.75a.75.75 0 001.5 0v-9.75zm3.75 5.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <span className="absolute -top-12 px-2.5 py-1.5 bg-black/90 text-white text-[11px] font-medium rounded-lg opacity-0 group-hover/item:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-white/10 pointer-events-none">
-                                Analiz Motoru
-                            </span>
-                        </a>
-
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

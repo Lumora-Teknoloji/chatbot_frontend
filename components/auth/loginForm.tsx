@@ -64,21 +64,9 @@ export default function LoginForm({ onLoginSuccess, onGuestMode }: LoginFormProp
                 <div className="p-10 sm:p-12 relative z-10">
                     {/* Header */}
                     <div className="flex flex-col items-center mb-10 space-y-4">
-                        <div className="relative w-20 h-20 rounded-full border border-sky-200 dark:border-gray-800/80 bg-white dark:bg-[#0a0a0a] shadow-[0_0_15px_rgba(186,230,253,0.5)] dark:shadow-inner flex items-center justify-center">
+                        <div className="relative w-20 h-20 rounded-full border border-sky-200 dark:border-gray-800/80 bg-white dark:bg-[#0a0a0a] shadow-[0_0_15px_rgba(186,230,253,0.5)] dark:shadow-inner flex items-center justify-center overflow-hidden">
                             <div className="absolute inset-0 rounded-full border border-sky-300/30 dark:border-sky-500/20 blur-sm"></div>
-                            {isRegister ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500 dark:text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)] dark:drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <line x1="19" y1="8" x2="19" y2="14" />
-                                    <line x1="22" y1="11" x2="16" y2="11" />
-                                </svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-500 dark:text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)] dark:drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">
-                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                </svg>
-                            )}
+                            <img src="/lumora_logo.png" alt="Lumora" className="w-14 h-14 object-contain relative z-10" />
                         </div>
                         <div className="text-center">
                             <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">

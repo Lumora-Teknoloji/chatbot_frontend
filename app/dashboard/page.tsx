@@ -5,6 +5,7 @@ import { useAuth } from '@/components/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useProductionList } from '@/hooks/useProductionList';
 import type { ProductOut, ProductionListItem } from '@/lib/api';
+
 import './dashboard.css';
 
 const TREND_ICONS: Record<string, { emoji: string; color: string }> = {
@@ -410,19 +411,6 @@ export default function DashboardPage() {
                 />
             )}
 
-            {/* macOS Dock */}
-            <div className="dock">
-                <a href="/" className="dock__item">
-                    <div className="dock__icon">💬</div>
-                    <span className="dock__label">Chat</span>
-                </a>
-                <div className="dock__separator" />
-                <a href="/dashboard" className="dock__item">
-                    <div className="dock__icon dock__icon--active">🏭</div>
-                    <span className="dock__label">Üretim</span>
-                    <div className="dock__dot" />
-                </a>
-            </div>
         </div>
     );
 }
