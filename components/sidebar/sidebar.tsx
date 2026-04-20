@@ -57,8 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                             className="flex items-center gap-2 animate-fade-in ml-1 cursor-pointer transition-transform hover:scale-105 active:scale-95 group focus:outline-none"
                             title="Yeni Sohbet Başlat"
                         >
-                            <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-[0_0_15px_rgba(16,185,129,0.25)] border-[3px] border-black/80 ring-1 ring-emerald-500/20 group-hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-300">
-                                <img src="/lumora_orb.png" alt="Lumora" className="w-full h-full object-cover" />
+                            <div className="relative w-12 h-auto shrink-0 flex items-center justify-center drop-shadow-[0_0_8px_rgba(218,165,32,0.6)]">
+                                <img src="/lumora_logo.png" alt="Lumora Boutique" className="w-full h-auto object-contain" />
                             </div>
                         </button>
                     )}

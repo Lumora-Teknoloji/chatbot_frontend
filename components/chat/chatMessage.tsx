@@ -109,12 +109,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, userProfile, avatarO
             }}
         />
     ) : (
-        // AI Avatar - ChatGPT tarzı minimal
-        <div className="w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-brand-emerald/10 ring-1 ring-white/20 shadow-md">
+        <div className="w-9 h-9 flex items-center justify-center shrink-0 drop-shadow-md">
             <img
-                src="/lumora_orb.png"
+                src="/lumora_logo.png"
                 alt="Lumora AI"
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain"
             />
         </div>
     );
@@ -153,16 +152,23 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, userProfile, avatarO
                     {(message.imageUrls && message.imageUrls.length > 0) || message.imageUrl ? (
                         <div className="mb-4">
                             <div className="flex flex-wrap gap-3">
-                                {(message.imageUrls && message.imageUrls.length > 0 ? message.imageUrls : message.imageUrl ? [message.imageUrl] : []).map((imageUrl, index) => (
-                                    <div key={index} className="relative rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-gray-900/50 group/img cursor-pointer max-w-sm w-full aspect-square" onClick={() => openLightbox(imageUrl)}>
-                                        <img
-                                            src={imageUrl}
-                                            alt={`AI generated ${index + 1}`}
-                                            className="w-full h-full object-cover transition-all duration-300 group-hover/img:scale-[1.05]"
-                                            loading="eager"
-                                        />
-                                    </div>
-                                ))}
+                                {(message.imageUrls && message.imageUrls.length > 0 ? message.imageUrls : message.imageUrl ? [message.imageUrl] : []).map((imageUrl, index) => {
+                                    // Gerekli URL normalizasyonu
+                                    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+                                    const normalizedUrl = (imageUrl.startsWith('/') && !imageUrl.startsWith('http'))
+                                        ? `${BACKEND_URL}${imageUrl}`
+                                        : imageUrl;
+                                    return (
+                                        <div key={index} className="relative rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-gray-900/50 group/img cursor-pointer max-w-sm w-full aspect-square" onClick={() => openLightbox(normalizedUrl)}>
+                                            <img
+                                                src={normalizedUrl}
+                                                alt={`AI generated ${index + 1}`}
+                                                className="w-full h-full object-cover transition-all duration-300 group-hover/img:scale-[1.05]"
+                                                loading="eager"
+                                            />
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     ) : null}

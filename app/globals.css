@@ -14,37 +14,38 @@
 :root {
     /* ========================================= */
     /* 🎨 BASE COLORS - TEMEL RENKLER (RGB)     */
-    /* Modern ChatGPT Theme                     */
+    /* Baby Blue & Pitch Black Theme            */
     /* ========================================= */
 
-    /* Ana Gri - Dark Gray (Kutular için) */
-    --color-green: #40414F;
-    --color-green-rgb: 64, 65, 79;
-    --color-green-light: #565869;
-    --color-green-dark: #343541;
-    --color-green-deep: #202123;
+    /* Ana Mavi - Primary Sky Blue */
+    --color-green: #38bdf8;
+    /* sky-400 */
+    --color-green-rgb: 56, 189, 248;
+    --color-green-light: #7dd3fc;
+    --color-green-dark: #0284c7;
+    --color-green-deep: #0369a1;
 
-    /* Açık Gri - Light Gray (Vurgular için) */
-    --color-gold: #565869;
-    --color-gold-rgb: 86, 88, 105;
-    --color-gold-light: #6E6F7E;
-    --color-gold-cream: #ECECF1;
-    --color-gold-warm: #8E8EA0;
-    --color-gold-deep: #444654;
+    /* Açık Mavi - Sky Blue Base */
+    --color-gold: #7dd3fc;
+    --color-gold-rgb: 125, 211, 252;
+    --color-gold-light: #bae6fd;
+    --color-gold-cream: #e0f2fe;
+    --color-gold-warm: #38bdf8;
+    --color-gold-deep: #0284c7;
 
     /* Beyaz & Koyu Tonlar */
     --color-white: #ffffff;
     --color-white-rgb: 255, 255, 255;
-    --color-cream: #FFFEF7;
-    --color-cream-rgb: 255, 254, 247;
+    --color-cream: #f8fafc;
+    --color-cream-rgb: 248, 250, 252;
 
-    /* Arka Plan Tonları - Dark Gray Shades */
-    --color-dark: #343541;
-    --color-dark-rgb: 52, 53, 65;
-    --color-dark-light: #40414F;
-    --color-dark-lighter: #444654;
-    --color-dark-deep: #2A2B32;
-    --color-dark-deepest: #202123;
+    /* Arka Plan Tonları - Light Sky */
+    --color-dark: #e0f2fe;
+    --color-dark-rgb: 224, 242, 254;
+    --color-dark-light: #f0f9ff;
+    --color-dark-lighter: #ffffff;
+    --color-dark-deep: #bae6fd;
+    --color-dark-deepest: #7dd3fc;
 
     /* Tehlike / Hata - Danger */
     --color-danger: #C62828;
@@ -58,57 +59,60 @@
     /* ========================================= */
     /* GLOBAL / GENEL RENKLER                   */
     /* ========================================= */
-    --background: #343541;
-    --foreground: #ECECF1;
+    --background: #e0f2fe;
+    /* sky-100 for a noticeable baby blue base */
+    --foreground: #020617;
+    /* deep slate for text */
 
     /* ========================================= */
-    /* SIDEBAR - SOL MENÜ (Koyu Yeşil)          */
+    /* SIDEBAR - SOL MENÜ                       */
     /* ========================================= */
-    --sidebar-bg: var(--color-green-deep);
-    --sidebar-bg-hover: var(--color-green-dark);
-    --sidebar-text: var(--color-cream);
-    --sidebar-text-muted: rgba(var(--color-cream-rgb), 0.7);
-    --sidebar-border: rgba(var(--color-gold-rgb), 0.4);
-    --sidebar-item-hover: rgba(var(--color-gold-rgb), 0.2);
-    --sidebar-item-active: rgba(var(--color-gold-rgb), 0.35);
-    --sidebar-icon: var(--color-gold);
+    --sidebar-bg: #ffffff;
+    --sidebar-bg-hover: #f0f9ff;
+    --sidebar-text: #0f172a;
+    --sidebar-text-muted: rgba(15, 23, 42, 0.7);
+    --sidebar-border: rgba(56, 189, 248, 0.3);
+    --sidebar-item-hover: rgba(56, 189, 248, 0.15);
+    --sidebar-item-active: rgba(56, 189, 248, 0.3);
+    --sidebar-icon: #0ea5e9;
 
     /* ========================================= */
-    /* INPUT - GİRİŞ KUTULARI (Yeşil Tonlu)     */
+    /* INPUT - GİRİŞ KUTULARI                   */
     /* ========================================= */
-    --input-bg: var(--color-green);
-    --input-text: var(--color-cream);
-    --input-placeholder: rgba(var(--color-cream-rgb), 0.6);
-    --input-border: rgba(var(--color-gold-rgb), 0.6);
-    --input-border-focus: var(--color-gold);
-    --input-shadow: rgba(var(--color-gold-rgb), 0.4);
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
+    --input-placeholder: rgba(15, 23, 42, 0.5);
+    --input-border: rgba(56, 189, 248, 0.4);
+    --input-border-focus: #0ea5e9;
+    --input-shadow: rgba(56, 189, 248, 0.15);
 
     /* ========================================= */
     /* OUTPUT / AI MESSAGES - ÇIKTI KUTULARI    */
     /* ========================================= */
-    --output-ai-bg: var(--color-green);
-    --output-ai-text: var(--color-cream);
-    --output-ai-border: rgba(var(--color-gold-rgb), 0.5);
+    --output-ai-bg: #e0f2fe;
+    /* Light baby blue bubbles */
+    --output-ai-text: #0f172a;
+    --output-ai-border: rgba(56, 189, 248, 0.3);
 
     /* ========================================= */
     /* USER MESSAGES - KULLANICI MESAJLARI      */
     /* ========================================= */
-    --output-user-bg: var(--color-green-light);
-    --output-user-text: var(--color-cream);
-    --output-user-border: rgba(var(--color-gold-rgb), 0.6);
+    --output-user-bg: #ffffff;
+    --output-user-text: #0f172a;
+    --output-user-border: rgba(56, 189, 248, 0.4);
 
     /* ========================================= */
     /* BUTTONS - BUTONLAR                       */
     /* ========================================= */
-    --button-primary-bg: var(--color-green);
-    --button-primary-text: var(--color-cream);
-    --button-primary-hover: var(--color-green-dark);
-    --button-primary-border: rgba(var(--color-gold-rgb), 0.5);
+    --button-primary-bg: #0ea5e9;
+    --button-primary-text: #ffffff;
+    --button-primary-hover: #0284c7;
+    --button-primary-border: rgba(2, 132, 199, 0.5);
 
     --button-secondary-bg: transparent;
-    --button-secondary-text: var(--color-green);
-    --button-secondary-border: var(--color-green);
-    --button-secondary-hover: rgba(var(--color-green-rgb), 0.1);
+    --button-secondary-text: #0ea5e9;
+    --button-secondary-border: #0ea5e9;
+    --button-secondary-hover: rgba(14, 165, 233, 0.1);
 
     --button-danger-bg: var(--color-danger);
     --button-danger-text: var(--color-white);
@@ -118,25 +122,25 @@
     /* HEADER - ÜST MENÜ                        */
     /* ========================================= */
     --header-bg: transparent;
-    --header-text: var(--color-white);
-    --header-icon: var(--color-gold);
+    --header-text: #020617;
+    --header-icon: #0ea5e9;
 
     /* ========================================= */
     /* TYPOGRAPY - YAZILAR                      */
     /* ========================================= */
-    --text-primary: var(--color-white);
-    --text-secondary: rgba(var(--color-white-rgb), 0.9);
-    --text-muted: rgba(var(--color-white-rgb), 0.7);
-    --text-heading: var(--color-gold);
-    --text-link: var(--color-gold-light);
-    --text-link-hover: var(--color-gold);
+    --text-primary: #020617;
+    --text-secondary: rgba(2, 6, 23, 0.9);
+    --text-muted: rgba(2, 6, 23, 0.7);
+    --text-heading: #0ea5e9;
+    --text-link: #4f46e5;
+    --text-link-hover: #0ea5e9;
 
     /* ========================================= */
-    /* CARDS & CONTAINERS - KARTLAR (Yeşil)     */
+    /* CARDS & CONTAINERS - KARTLAR             */
     /* ========================================= */
-    --card-bg: var(--color-green);
-    --card-border: rgba(var(--color-gold-rgb), 0.4);
-    --card-shadow: rgba(var(--color-green-rgb), 0.25);
+    --card-bg: #ffffff;
+    --card-border: rgba(56, 189, 248, 0.2);
+    --card-shadow: rgba(56, 189, 248, 0.1);
 
     /* ========================================= */
     /* LOADING & STATES - DURUMLAR              */
@@ -149,41 +153,39 @@
 
 /* Dark Theme Override */
 [data-theme="dark"] {
-    --background: #1a1f2e;
-    --foreground: #e5e7eb;
+    --background: #000000;
+    --foreground: #f0f9ff;
 
-    --color-dark: #1a1f2e;
-    --color-dark-rgb: 26, 31, 46;
-    --color-dark-light: #242b3d;
-    --color-dark-lighter: #2d364a;
-    --color-dark-deep: #151926;
-    --color-dark-deepest: #0f1219;
+    --color-dark: #0a0a0a;
+    --color-dark-rgb: 10, 10, 10;
+    --color-dark-light: #171717;
+    --color-dark-lighter: #262626;
+    --color-dark-deep: #050505;
+    --color-dark-deepest: #000000;
 
-    /* Green Variables Remapped to Grayscale for 'No-Green' Dark Mode */
-    --color-green: #343541;
-    /* Matches ChatGPT Dark Gray */
-    --color-green-light: #444654;
-    /* Slightly lighter gray */
-    --color-green-dark: #2A2B32;
-    /* Darker gray */
-    --color-green-deep: #202123;
-    /* Deepest black/gray */
+    /* Baby Blue Variables for Dark Mode Accents */
+    --color-green: #0ea5e9;
+    /* Deep Sky */
+    --color-green-light: #38bdf8;
+    --color-green-dark: #0284c7;
+    --color-green-deep: #0ea5e9;
 
-    --color-gold: #ECECF1;
-    /* Neutral Text Color */
-    --color-gold-light: #D1D5DB;
-    --color-gold-cream: #F3F4F6;
-    --color-gold-warm: #9CA3AF;
+    --color-gold: #bae6fd;
+    --color-gold-light: #e0f2fe;
+    --color-gold-cream: #f0f9ff;
+    --color-gold-warm: #7dd3fc;
 
-    --sidebar-bg: #202123;
-    /* ChatGPT Sidebar Black */
-    --input-box-bg: #40414F;
-    --output-ai-bg: #444654;
+    --sidebar-bg: #030303;
+    /* Pitch black sidebar */
+    --sidebar-bg-hover: #0f172a;
+    --sidebar-border: rgba(56, 189, 248, 0.1);
+
+    --input-bg: #0a0a0a;
+    --output-ai-bg: #0a0a0a;
     --output-user-bg: transparent;
-    /* No tint for user messages */
 
-    --text-primary: #ECECF1;
-    --text-secondary: #C5C5D2;
+    --text-primary: #f0f9ff;
+    --text-secondary: #bae6fd;
 }
 
 body {
