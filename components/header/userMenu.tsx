@@ -86,13 +86,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
         return { avatarUrl: defaultAvatar, fallbackAvatar: defaultAvatar };
     })();
 
+    const [imgSrc, setImgSrc] = useState(avatarUrl);
+
+    React.useEffect(() => {
+        setImgSrc(avatarUrl);
+    }, [avatarUrl]);
+
     return (
         <div className="relative">
             <img
-                src={avatarUrl}
-                onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (target.src !== fallbackAvatar) target.src = fallbackAvatar;
+                src={imgSrc}
+                onError={() => {
+                    if (imgSrc !== fallbackAvatar) {
+                        setImgSrc(fallbackAvatar);
+                    }
                 }}
                 onClick={() => setIsProfileOpen(prev => !prev)}
                 className="w-10 h-10 rounded-full object-cover shadow-lg border border-white/10 cursor-pointer hover:ring-2 hover:ring-blue-500/50 transition-all"
